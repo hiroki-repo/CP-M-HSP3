@@ -1,0 +1,4 @@
+#packopt name "os"
+#runtime "hsp3cl"
+mes "CP/M(TM)-HSP3 Ver 2.3 by Gocaine project"
+run@hsp "kernel.sys",dir_cmdline

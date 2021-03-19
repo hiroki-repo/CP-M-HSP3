@@ -1,0 +1,1166 @@
+#packopt name "os"
+#include "migs.as"
+#include "memaccess.as"
+#pack "index.hsp"
+#runtime "hsp3cl"
+#uselib "crtdll.dll"
+#cfunc global _kbhit "_kbhit"
+#cfunc global _getch "_getch"
+#func global signal "signal" int,int
+#func global printf "printf" sptr,sptr
+#module
+#deffunc mesc str prm_0,int prm_1
+if prm_1=0{
+printf "%s",prm_0+"\n"
+}else{
+printf "%s",prm_0
+}
+return
+#deffunc inputc array prm_0,int prm_1,int prm_2
+repeat
+prtx="":if _kbhit()!0 {lpoke prtx,0,_getch():if lpeek(prtx,0)!0x08{mesc prtx,1}}
+if prm_2!0{if lpeek(prtx,0)=0x0a or lpeek(prtx,0)=0x0d{break}}
+if lpeek(prtx,0)=0x08{if strlen(prm_0)>0{mesc prtx+" "+prtx,1}:prm_0=strmid(prm_0,0,strlen(prm_0)-1):continue cnt}
+prm_0+=prtx:await
+continue cnt
+loop
+return
+#global
+onerror gosub *erroravoider
+delimiterfortxt=0x24
+calllabix=0
+sdim datastackforcpmmem,128
+sdim var_30,65540
+sdim cmdlineforcc,256*256
+iofileaddrforcpm=0
+calledcpmforexeccount=0
+calledcpmforexec=0
+cmdline=""
+;#include "hsp3imp.as"
+//#uselib "hsp3imp.dll"
+//#func hspbye "hspbye"
+/*
+#uselib "HSPThread.dll"
+#func HSPCreateThread "HSPCreateThread" int,str,int,int,int,int,int*/
+sdim var_29,65540
+mem16bitshiftaddr varptr(var_29)
+memwpoke 0xFD00,0xFFFF
+mempoke 0xFD02,0x04
+mempoke 0xFD03,0x0F
+mempoke 0xFD04,0x01
+memwpoke 0xFD05,0xFFFF
+memwpoke 0xFD07,0xFFFF
+memwpoke 0xFD09,0x00C0
+memwpoke 0xFD0B,0x0020
+memwpoke 0xFD0D,0x0003
+/*notesel displaysizestr
+noteload "./ds.txt"
+noteget winxstr,0
+noteget winystr,1
+bgscr 0,int(winxstr),int(winystr),0,0,0*/
+#include "kernel32.as"
+nowdir="":nowdir=dir_cur
+dircmdlines="":dircmdlines=dir_cmdline
+repeat:if strmid(dircmdlines,0,1)=" "{dircmdlines=strmid(dircmdlines,1,strlen(dircmdlines)-1)}else{break}:loop
+onexit *onexits
+hwnd2=gettime(6)+gettime(5)*60+gettime(4)*3600+gettime(3)*(3600*24)+gettime(2)*(3600*24*32)+gettime(1)*(3600*24*32*12)
+mapname="chinprocessam"+str(hwnd2)
+hMap=0
+CreateFileMappingA 0xFFFFFFFF, 0,0x40,0,800,varptr(mapname):hMap=stat
+MapViewOfFileEx hMap,0x000F001F,0,0,800,0x50000000:addrforvar=stat
+mapname="chinprocessamxxx"+str(hwnd2)
+/*CreateFileMappingA 0xFFFFFFFF, 0,0x40,0,65540,varptr(mapname):hMap16bit=stat
+MapViewOfFileEx hMap16bit,0x000F001F,0,0,65540,0x00000001:addrforvar16bit=stat*/
+
+//dialog addrforvar16bit:goto *onexits
+/*exist "chinmainhnd":if strsize!=-1{
+hwnd2formc=0
+bload "chinmainhnd",hwnd2formc
+hMap2=0
+mapname2="chinmain"+str(hwnd2formc)
+CreateFileMappingA 0xFFFFFFFF, 0,0x40,0,800+40960,varptr(mapname2):hMap2=stat
+MapViewOfFileEx hMap2,0x000F001F,0,0,800+40960,0x50000000:mainprocessshared=stat
+dupptr sm2,mainprocessshared,800+40960,2
+}else{*/sdim sm2,800+40960//}
+strsize2=0:exist "IO.SYS":strsize2=strsize:if strsize2!-1{sdim iosysbin,strsize2:bload "IO.SYS",iosysbin}:strsize2=0
+dupptr fnameexeccall,mainprocessshared+(20480-4097),4096,2
+dupptr sm,addrforvar,800,2
+sdim ctrlport,4096
+runlabeller=*bdos
+lpoke ctrlport,5+4*24,lpeek(runlabeller,0)
+lpoke sm,0,varptr(ctrlport)
+poke ctrlport,4,0
+lpoke sm,5+4*22,varptr(var_29)
+mem16bitshiftaddr lpeek(sm,5+4*22)
+if vartype(iosysbin)=2{memfile iosysbin:ldim prtdriver,1:lpoke prtdriver,0,_faddproc("MEM:IO.SYS"):gosub prtdriver}
+mesc "\n",1
+goto *ccp
+*xecuter
+formadgeinitfunc
+//iofileaddrforcpm=varptr(datastackforcpmmem)
+delimiterfortxt=0x24
+iofileaddrforcpm=0x80
+lpoke sm,5+4*20,varptr(cmdline)
+lpoke sm,5+4*21,varptr(cmdname)
+memset var_29,32,11,0x5c+1
+memset var_29,32,11,0x6c+1
+cmdlinearg=""
+cmdlinearginstr=instr(cmdline,0," ")
+if cmdlinearginstr!=-1{cmdlinearg=strmid(cmdline,cmdlinearginstr,127)}
+memcpy var_29,cmdlinearg,strlen(cmdlinearg),0x81,0
+poke var_29,0x80,strlen(cmdlinearg)
+storexint=-1:dirlistvarx=""+cmdname(1):repeat strlen(dirlistvarx):if peek(dirlistvarx,cnt)>='a' and peek(dirlistvarx,cnt)<='z'{poke dirlistvarx,cnt,peek(dirlistvarx,cnt)-32}:loop:dirlistvarx2="":storex="":repeat 8:if strmid(dirlistvarx,cnt,1)="."{storexint=cnt:break}else{storex=storex+strmid(dirlistvarx,cnt,1)}:loop:memcpy var_29,storex,strlen(storex),0x5c+1,0:if storexint=-1{storex=""}else{storex="":storex=strmid(dirlistvarx,storexint+1,3)}:memcpy var_29,storex,3,0x5c+1+8,0
+storexint=-1:dirlistvarx=""+cmdname(2):repeat strlen(dirlistvarx):if peek(dirlistvarx,cnt)>='a' and peek(dirlistvarx,cnt)<='z'{poke dirlistvarx,cnt,peek(dirlistvarx,cnt)-32}:loop:dirlistvarx2="":storex="":repeat 8:if strmid(dirlistvarx,cnt,1)="."{storexint=cnt:break}else{storex=storex+strmid(dirlistvarx,cnt,1)}:loop:memcpy var_29,storex,strlen(storex),0x6c+1,0:if storexint=-1{storex=""}else{storex="":storex=strmid(dirlistvarx,storexint+1,3)}:memcpy var_29,storex,3,0x6c+1+8,0
+lpoke sm,5+4*22,varptr(var_29)
+lpoke sm,5+4*24,varptr(cmdlineforcc)
+sdim ctrlport,4096
+runlabeller=*bdos
+lpoke ctrlport,5+4*24,lpeek(runlabeller,0)
+lpoke sm,0,varptr(ctrlport)
+poke ctrlport,4,0
+mem16bitshiftaddr lpeek(sm,5+4*22)
+if vartype(iosysbin)=2{memfile iosysbin:ldim prtdriver,1:lpoke prtdriver,0,_faddproc("MEM:IO.SYS"):gosub prtdriver}
+exist cmdname(0)+".CAX"
+if strsize!=-1{
+	lpoke runlabeller,0,_faddproc(cmdname(0)+".CAX")
+	goto runlabeller
+	//HSPCreateThread 0,cmdname(0)+".cax",0,-4,1,1,0x100
+wait 100
+}else{
+exist cmdname(0)+".COM"
+if strsize!=-1{
+exist "cpm80.sys"
+if strsize=-1{goto *ccperror}else{
+	lpoke runlabeller,0,_faddproc("CPM80.SYS")
+	goto runlabeller
+//HSPCreateThread 0,"cpm80.sys",0,-4,1,1,0x100
+wait 100
+}
+}else{goto *ccperror}}
+repeat
+if calledcpmforexeccount=0{
+lpoke calledcpmforexeccount,0,lpeek(sm,5+4*25)
+lpoke calledcpmforexec,0,lpeek(sm,5+4*26)
+if calledcpmforexec=1{gosub *ccp_submit
+/*cmdlineforcc=""
+//dialog
+lpoke sm,5+4*25,0
+lpoke sm,5+4*26,0*/
+poke ctrlport,4,1
+lpoke ctrlport,0,0
+calledcpmforexeccount=0
+calledcpmforexec=0
+lpoke sm,5+4*25,0
+lpoke sm,5+4*26,0}
+lpoke sm,5+4*25,calledcpmforexeccount
+lpoke sm,5+4*26,calledcpmforexec
+}
+if peek(ctrlport,4)>=1{
+switch peek(ctrlport,4)
+case 1
+gosub *bdos
+swbreak
+swend
+poke ctrlport,4,0
+lpoke ctrlport,0,0
+repeat 100:lpoke ctrlport,5+4*cnt,0:loop
+}
+awaiti=awaiti+1:if awaiti=1501{awaiti=0:await}:loop
+stop
+*onexits
+lpoke sm2,40960-4097-8,lpeek(sm2,40960-4097-8)-calllabix
+CloseHandle hMap
+CloseHandle hMap2
+//CloseHandle hMap16bit
+end
+
+*ccperror
+if drivebak=1{
+driveletterstr="":poke driveletterstr,0,'A'+drive
+mesc ""+driveletterstr+":"+cmdname(0)+"?"
+}else{
+mesc ""+cmdname(0)+"?"
+}
+mesc "\n",1
+goto *ccp
+
+*ccp
+delimiterfortxt=0x24
+if drivebak=1{drive=driveold:drivebak=0}
+if calledcpmforexec=1 and calledcpmforexeccount<=0{calledcpmforexeccount=0:calledcpmforexec=0:return}
+*ccp_submit
+signal 2,varptr(_kbhit)
+if drivebak=1{drive=driveold:drivebak=0}
+sdim cmdname,128,512
+driveletterstr="":poke driveletterstr,0,'A'+drive
+//mesc "\n",1
+mesc driveletterstr,1
+mesc ">",1
+cmdline=""
+//cmdline="../stat"
+if calledcpmforexec=0 {inputc cmdline,127,2}else{notesel cmdlineforcc:noteget cmdline,notemax-calledcpmforexeccount:mesc cmdline:calledcpmforexeccount=calledcpmforexeccount-1}
+i=0:equalcheck=0
+repeat strlen(cmdline):if peek(cmdline,cnt)>='a' and peek(cmdline,cnt)<='z'{poke cmdline,cnt,peek(cmdline,cnt)-32}:loop
+repeat strlen(cmdline):if strmid(cmdline,cnt,1)=" "{i=i+1}else{if strmid(cmdline,cnt,1)="="{i=i+1:equalcheck=equalcheck+1}else{cmdname(i)=cmdname(i)+strmid(cmdline,cnt,1)}}:loop
+mesc "\n",1
+if cmdline=""{goto *ccp}
+switch cmdname(0)
+case "DIR"
+dirlistvar="":dirformat="":dirformat=cmdname(1):dirlistvarx=""
+if strmid(dirformat,1,1)=":"{dirformat=strmid(dirformat,2,strlen(dirformat))}
+if dirformat=""{dirformat="*.*"}
+dirlist dirlistvar,dirformat,1
+cnt2=0
+notesel dirlistvar
+ntmxpls=0:ntmxplsa=0
+if (notemax-((notemax/4)*4))<=3 and (notemax\4)!=0{ntmxplsa=2:ntmxpls=1}
+//if notemax<=3{ntmxplsa=1:ntmxpls=1}
+repeat (notemax/4)+ntmxpls
+driveletterstr="":poke driveletterstr,0,'A'+drive
+mesc driveletterstr,1
+ntmxplsx=4
+//if ntmxplsa=1{ntmxplsx=notemax}
+if ntmxpls=1{if (notemax-(cnt*4))>3{ntmxplsx=4}else{ntmxplsx=notemax-((notemax/4)*4)}}
+repeat ntmxplsx:if _kbhit(){dirbreakreq=1:break}:storexint=-1:noteget dirlistvarx,cnt+cnt2:repeat strlen(dirlistvarx):if peek(dirlistvarx,cnt)>='a' and peek(dirlistvarx,cnt)<='z'{poke dirlistvarx,cnt,peek(dirlistvarx,cnt)-32}:loop:dirlistvarx2="":storex="":repeat strlen(dirlistvarx):if strmid(dirlistvarx,cnt,1)="."{storexint=cnt:break}else{if cnt<8{storex=storex+strmid(dirlistvarx,cnt,1)}}:loop:dirlistvarx2=strmid(storex,0,8):repeat (8-strlen(dirlistvarx2)):dirlistvarx2=dirlistvarx2+" ":loop:if storexint=-1{storex=""}else{storex=strmid(dirlistvarx,storexint+1,3)}:dirlistvarx2=dirlistvarx2+" "+storex:repeat (12-strlen(dirlistvarx2)):dirlistvarx2=dirlistvarx2+" ":loop:mesc ": "+dirlistvarx2+" ",1:loop:cnt2=cnt2+4
+mesc "\n",1
+if dirbreakreq=1{break}
+loop
+swbreak
+case "ERA"
+dirlistvar="":dirformat="":dirformat=cmdname(1):dirlistvarx=""
+if strmid(dirformat,1,1)=":"{dirformat=strmid(dirformat,2,strlen(dirformat))}
+if dirformat=""{mesc "NO FILE"}else{
+//exist dirformat
+dirlistvar=""
+dirlist dirlistvar,dirformat,1
+stat2=stat
+if stat2=0{mesc "NO FILE",1}else{
+if instr(dirformat,0,"*")=-1 and instr(dirformat,0,"?")=-1 {ucforrm="Y"}else{mesc "All (Y/N)?",1
+inputc ucforrm,1,2}
+if ucforrm="Y" or ucforrm="y"{
+notesel dirlistvar
+repeat stat2
+noteget dirformat,cnt
+delete dirformat
+loop
+}
+}}
+mesc "\n",1
+swbreak
+case "TYPE"
+dirlistvar="":dirformat="":dirformat=cmdname(1):dirlistvarx=""
+if strmid(dirformat,1,1)=":"{dirformat=strmid(dirformat,2,strlen(dirformat))}
+if dirformat=""{mesc "?"}else{
+exist dirformat
+if strsize=-1{mesc dirformat+"?",1}else{
+//notesel viewfile
+exist dirformat
+strsize2=strsize
+sdim viewfile,strsize2
+bload dirformat,viewfile
+repeat strsize2
+if _kbhit(){break}
+viewfilesliced=""
+lpoke viewfilesliced,0,peek(viewfile,cnt)
+mesc viewfilesliced,1
+loop
+}}
+mesc "\n",1
+swbreak
+case "REN"
+if equalcheck=1{
+dirlistvar="":dirformat="":dirformat=cmdname(1):dirlistvarx=""
+if strmid(dirformat,1,1)=":"{dirformat=strmid(dirformat,2,strlen(dirformat))}:dirformat1=""+dirformat:dirformat=cmdname(2)
+if strmid(dirformat,1,1)=":"{dirformat=strmid(dirformat,2,strlen(dirformat))}:dirformat2=""+dirformat
+if dirformat2=""{mesc "?"}else{
+exist dirformat2
+if strsize=-1{mesc "NO FILE",1}else{
+bcopy dirformat2,dirformat1
+delete dirformat2
+}}}else{mesc "?"}
+mesc "\n",1
+swbreak
+case "SAVE"
+dirlistvar="":dirformat="":dirformat=cmdname(2):dirlistvarx=""
+if strmid(dirformat,1,1)=":"{dirformat=strmid(dirformat,2,strlen(dirformat))}
+if dirformat="" or cmdname(1)=""{}else{
+sdim dumpdata,int(cmdname(1))*256
+repeat int(cmdname(1))*256:poke dumpdata,cnt,mempeek(cnt+0x100):loop
+bsave dirformat,dumpdata
+}
+mesc "\n",1
+swbreak
+case "USER"
+if cmdname(1)=""{mesc "?":mesc "\n",1}else{
+userid=int(cmdname(1)) & 0xFF
+if userid>=16{userid=15}
+}
+swbreak
+default
+sdim cmdname,128,512
+if strmid(cmdline,1,1)=":" {if peek(cmdline,0)>='A' and peek(cmdline,0)<='Z' {drivebak=1:driveold=drive:drive=peek(cmdline,0)-'A':if drive>=16{drive=driveold}}:cmdline=strmid(cmdline,2,strlen(cmdline)):if cmdline=""{drivebak=0:goto *ccp}}
+i=0:repeat strlen(cmdline):if strmid(cmdline,cnt,1)=" "{i=i+1}else{cmdname(i)=cmdname(i)+strmid(cmdline,cnt,1)}:loop
+goto *xecuter
+swbreak
+swend
+goto *ccp
+*hlefcb
+fcbdrivecode=0
+fcbdrivecode=mempeek(fcbaddr)
+logmes "address:"+strf("%04X",str(fcbaddr))
+gosub *hlefcbfileread
+fcbex=mempeek(fcbaddr+1+8+3)
+fcbrc=mempeek(fcbaddr+1+8+3+1+1+1+1)
+fcbcr=mempeek(fcbaddr+32)
+fcbcrx=(fcbcr & 0x7F)+((mempeek(fcbaddr+1+8+3)&0x1F)<<7)+((mempeek(fcbaddr+1+8+3+1))<<12)+((mempeek(fcbaddr+1+8+3+1+1))<<20)
+//mempoke 0x7C,fcbcr
+return
+*hlefcbcrxex
+fcbcrx=fcbcrx+1
+mempoke fcbaddr+32,fcbcrx & 0x7f
+mempoke fcbaddr+1+8+3,(fcbcrx >> 7) & 0x1f
+mempoke fcbaddr+1+8+3+1,(fcbcrx >> 12) & 0xff
+mempoke fcbaddr+1+8+3+1+1,(fcbcrx >> 20) & 0xff
+fcbcrx=fcbcrx-1
+return
+
+*hlekeyget
+wparam2=wparam
+return
+
+*hlefcbfileread
+fcbfname=""
+memmemcpy varptr(fcbfname),fcbaddr+1,8
+//dupptr fcbfname,varptr(var_29)+fcbaddr+1,8,2
+instrforfcbfname=instr(fcbfname,0," ")
+fcbfname2=""
+if instrforfcbfname=-1{
+fcbfname2=fcbfname
+}else{
+fcbfname2=strmid(fcbfname,0,instrforfcbfname)
+}
+fcbfnameformat=""
+memmemcpy varptr(fcbfnameformat),fcbaddr+1+8,3
+instrforfcbfnameformat=0
+instrforfcbfnameformat=instr(fcbfnameformat,0," ")
+fcbfnameformat2=""
+if instrforfcbfnameformat=-1{
+fcbfnameformat2=fcbfnameformat
+}else{
+fcbfnameformat2=strmid(fcbfnameformat,0,instrforfcbfnameformat)
+}
+//dupptr fcbfnameformat,varptr(var_29)+fcbaddr+1+8,3,2
+fcbfnamenameplsformat=""
+if fcbfnameformat2="   " or fcbfnameformat2=""{
+fcbfnamenameplsformat=fcbfname2
+}else{
+fcbfnamenameplsformat=fcbfname2+"."+fcbfnameformat2
+}
+logmes "fname:"+fcbfnamenameplsformat
+//memcpy var_29,fcbfname,0x08,0x5D,0
+//memcpy var_29,fcbfnameformat,0x03,0x65,0
+return
+
+*bdos
+signal 2,varptr(_kbhit)
+mem16bitshiftaddr lpeek(sm,5+4*22)
+//mesc lpeek(ctrlport,0)
+//dialog lpeek(ctrlport,0)
+logmes "syscall:"+str(lpeek(ctrlport,0))
+switch lpeek(ctrlport,0)
+case 0
+wait 100
+//hspbye
+mesc "\n",1
+poke ctrlport,4,0
+cmdline=""
+i=0:equalcheck=0
+repeat strlen(cmdline):if peek(cmdline,cnt)>='a' and peek(cmdline,cnt)<='z'{poke cmdline,cnt,peek(cmdline,cnt)-32}:loop
+repeat strlen(cmdline):if strmid(cmdline,cnt,1)=" "{i=i+1}else{if strmid(cmdline,cnt,1)="="{i=i+1:equalcheck=equalcheck+1}else{cmdname(i)=cmdname(i)+strmid(cmdline,cnt,1)}}:loop
+goto *ccp
+swbreak
+
+case 1
+istyped=0
+/*onkey gosub *hlekeyget
+repeat
+if lpeek(sm,4*1)=0{}else{break}
+await:loop
+onkey 0*/
+hlekeygetenabled=1
+//if lpeek(sm,4*1)=0{}else{wparam2=0}
+//repeat
+wparam2=0
+wparam2=_getch()
+gosub *ctrlseax
+wparam2str=""
+lpoke sm,4*1,wparam2
+lpoke wparam2str,0,wparam2
+mesc wparam2str,1
+//if lpeek(sm,4*1)=0{}else{break}
+//loop
+wparam2=0
+if lpeek(sm,4*1)=0{hlekeygetenabled=0}else{istyped=1}
+hlekeygetenabled=0
+swbreak
+case 2
+//hleplusysize=0
+/*if peek(var_24,4)=0xC{nowgsel=ginfo(3):gsel 0:cls 4:gsel 2:sdim var17clr,varsize(var_17)+1:memcpy var_17,var17clr,varsize(var_17),0,0:memcpy var_30,var17clr,varsize(var_17),48896-varsize(var_17)+256,0:gsel nowgsel:poke var_30, 49440, 0:poke var_30, 49441, 0:if ( var_20 ){gosub *label_30}}else{
+poke var_30, 49446,7
+		poke var_30, 49447, 9
+showstr=""
+if lpeek(ctrlport,5+4*0)=0xA{}else{
+if lpeek(ctrlport,5+4*0)=0xD{poke var_30, 49441, peek(var_30, 49441)+hleplusysize:poke var_30, 49440, 0:if peek(var_30, 49441)>=191{poke var_30, 49441, peek(var_30, 49441)-hleplusysize:nowgsel=ginfo(3):gsel 2:pos 0,0:gcopy 2,0,hleplusysize,256,192-hleplusysize:palcolor 0:boxf 0,192-hleplusysize,256,192:/*sdim var17clr,varsize(var_17)-(256*hleplusysize):memcpy var_17,var17clr,varsize(var_17)-(256*hleplusysize),0,0:memcpy var_30,var17clr,varsize(var_17)-(256*hleplusysize),48896,0*/:/*poke var_30, 49441, peek(var_30, 49441)-hleplusysize*//*:gsel nowgsel:gosub *label_31}:if ( var_20 ){gosub *label_30}}else{
+poke var_30,49456,lpeek(ctrlport,5+4*0)
+if ( var_20 ){gosub *label_30}
+if ( var_20 ){poke var_30, 49440, peek(var_30, 49440)+hleplusxsize}
+memset var_30,0,463,49456
+}
+}
+}*/
+showstr=""
+poke showstr,0,peek(ctrlport,5+4*0)
+mesc showstr,1
+
+swbreak
+case 3//reader input
+if lpeek(ctrlport,5+4*25)!0{ldim prtdriver,1:lpoke prtdriver,lpeek(ctrlport,5+4*25):gosub prtdriver
+}else{
+dupptr devfileopeneddata,varptr(sm)+4*1,1,2
+bload "AUX",devfileopeneddata
+//lpoke sm,4*1,peek(devfileopeneddata,0)
+}
+swbreak
+case 4
+if lpeek(ctrlport,5+4*26)!0{ldim prtdriver,1:lpoke prtdriver,lpeek(ctrlport,5+4*26):gosub prtdriver
+}else{
+dupptr stringforvar24dev,varptr(ctrlport)+5+4*0,1,2
+bsave "AUX",stringforvar24dev
+}
+swbreak
+case 5
+//stringforvar24=""
+//lpoke stringforvar24,0,peek(ctrlport,5+4*0)
+if lpeek(ctrlport,5+4*27)!0{ldim prtdriver,1:lpoke prtdriver,lpeek(ctrlport,5+4*27):gosub prtdriver
+}else{
+dupptr stringforvar24dev,varptr(ctrlport)+5+4*0,1,2
+bsave "PRN",stringforvar24dev
+//logmes "printer output:"+stringforvar24
+}
+swbreak
+case 6
+//logmes "list output:"+lpeek(ctrlport,5+4*0)
+if peek(ctrlport,5+4*0)=0xFF{
+istyped=0
+hlekeygetenabled=1
+//repeat
+wparam2=0
+//wparam2=_getch()
+if _kbhit(){wparam2=_getch()
+gosub *ctrlseax
+}
+lpoke sm,4*1,wparam2
+//if lpeek(sm,4*1)=0{}else{break}
+//loop
+wparam2=0
+if peek(sm,4*1)=0{hlekeygetenabled=0}else{istyped=1}
+hlekeygetenabled=0
+}else{
+if peek(ctrlport,5+4*0)=0xFD{
+istyped=0
+hlekeygetenabled=1
+//repeat
+wparam2=0
+if _kbhit(){wparam2=_getch()
+gosub *ctrlseax
+}
+lpoke sm,4*1,wparam2
+/*poke var_30,49456,lpeek(sm,4*1)
+if ( var_20 ){gosub *label_30}
+if lpeek(sm,4*1)=0{}else{break}*/
+showstr=""
+poke showstr,0,wparam2
+mesc showstr,1
+//loop
+wparam2=0
+}else{
+if peek(ctrlport,5+4*0)=0xFE{
+if _kbhit(){lpoke sm,4*1,0xFFFFFFFF}else{lpoke sm,4*1,0}
+}else{
+/*if lpeek(ctrlport,5+4*0)=0xC{nowgsel=ginfo(3):gsel 0:cls 4:gsel 2:sdim var17clr,varsize(var_17):memcpy var_17,var17clr,varsize(var_17),0,0:memcpy var_30,var17clr,varsize(var_17),48896,0:gsel nowgsel:poke var_30, 49440, 0:poke var_30, 49441, 0:if ( var_20 ){gosub *label_30}}else{
+poke var_30, 49446,7
+		poke var_30, 49447, 9
+showstr=""
+if lpeek(ctrlport,5+4*0)=0xA{}else{
+if lpeek(ctrlport,5+4*0)=0xD{poke var_30, 49441, peek(var_30, 49441)+hleplusysize:poke var_30, 49440, 0:if peek(var_30, 49441)>=191{poke var_30, 49441, peek(var_30, 49441)-hleplusysize:nowgsel=ginfo(3):gsel 2:pos 0,0:gcopy 2,0,hleplusysize,256,192-hleplusysize:palcolor 0:boxf 0,192-hleplusysize,256,192:/*sdim var17clr,varsize(var_17)-(256*hleplusysize):memcpy var_17,var17clr,varsize(var_17)-(256*hleplusysize),0,0:memcpy var_30,var17clr,varsize(var_17)-(256*hleplusysize),48896,0*//*:gsel nowgsel:gosub *label_31}:if ( var_20 ){gosub *label_30}}else{
+poke var_30,49456,lpeek(ctrlport,5+4*0)
+if ( var_20 ){gosub *label_30}
+if ( var_20 ){poke var_30, 49440, peek(var_30, 49440)+hleplusxsize}
+memset var_30,0,463,49456
+}
+}
+}*/
+
+showstr=""
+poke showstr,0,lpeek(ctrlport,5+4*0)
+mesc showstr,1
+}
+}
+}
+swbreak
+case 7
+lpoke sm,4*1,0
+swbreak
+case 8
+lpoke sm,4*1,-1
+swbreak
+case 9
+cntix=0:cntixold=2:cntix2=0
+poke var_30, 49446,7
+		poke var_30, 49447, 9
+showstr="":chkx0a0d=0:mesaddr=lpeek(ctrlport,5+4*0)
+repeat 463
+if mempeek(cnt+mesaddr)=delimiterfortxt{break}
+/*if memwpeek(cnt+mesaddr)=0x0A0D{
+cntixold=cntix
+cntix=cnt+2
+if ( var_20 ){gosub *label_30}
+poke var_30, 49447, 9
+repeat cntix-cntixold
+poke var_30,49456+cnt,0
+loop
+if ( var_20 ){poke var_30, 49441, peek(var_30, 49441)+hleplusysize}
+if ( var_20 ){poke var_30, 49440, 0}
+if peek(var_30, 49441)>=191{poke var_30, 49441, peek(var_30, 49441)-hleplusysize:nowgsel=ginfo(3):gsel 2:pos 0,0:gcopy 2,0,hleplusysize,256,192-hleplusysize:palcolor 0:boxf 0,192-hleplusysize,256,192:/*sdim var17clr,varsize(var_17)-(256*hleplusysize):memcpy var_17,var17clr,varsize(var_17)-(256*hleplusysize),0,0:memcpy var_30,var17clr,varsize(var_17)-(256*hleplusysize),48896,0*//*:gsel nowgsel:gosub *label_31}
+cntix2=cnt
+continue cntix
+}
+poke var_30,49456+cnt-cntix,memwpeek(cnt+mesaddr)
+//if chkx0a0d=1{break}
+cntix2=cnt*/
+showstr=""
+poke showstr,0,mempeek(cnt+mesaddr)
+mesc showstr,1
+loop:chkx0a0d=0
+/*if ( var_20 ){gosub *label_30}
+if ( var_20 ){poke var_30, 49440, peek(var_30, 49440)+((cntix2-(cntix-2))*hleplusxsize)}
+memset var_30,0,463,49456*/
+
+showstr=""
+mesc showstr
+//mesc showstr,1
+//var_27=var_28
+
+swbreak
+case 10
+//mesc "[test]",1
+/*stringforinputoutput="":cnt2=0
+repeat// 0x100
+stringforinputoutputx=""
+lpoke stringforinputoutputx,0,wparam2
+if wparam2=0{}else{wparam2=0}
+if lpeek(stringforinputoutputx,0)=13{break}
+if stringforinputoutputx="\n"{break}
+stringforinputoutput=stringforinputoutput+stringforinputoutputx
+//cnt2=cnt
+//mesfromminifont stringforinputoutputx,1
+if stringforinputoutputx=""{}else{
+	//hleplusysize=0
+	if peek(stringforinputoutputx,0)=0xC{nowgsel=ginfo(3):gsel 0:cls 4:gsel 2:sdim var17clr,varsize(var_17)+1:memcpy var_17,var17clr,varsize(var_17),0,0:memcpy var_30,var17clr,varsize(var_17),48896-varsize(var_17)+256,0:gsel nowgsel:poke var_30, 49440, 0:poke var_30, 49441, 0:if ( var_20 ){gosub *label_30}}else{
+	poke var_30, 49446,7
+			poke var_30, 49447, 9
+	showstr=""
+	if peek(stringforinputoutputx,0)=0xA{}else{
+	if peek(stringforinputoutputx,0)=0xD{poke var_30, 49441, peek(var_30, 49441)+hleplusysize:poke var_30, 49440, 0:if peek(var_30, 49441)>=191{poke var_30, 49441, peek(var_30, 49441)-hleplusysize:nowgsel=ginfo(3):gsel 2:pos 0,0:gcopy 2,0,hleplusysize,256,192-hleplusysize:palcolor 0:boxf 0,192-hleplusysize,256,192:/*sdim var17clr,varsize(var_17)-(256*hleplusysize):memcpy var_17,var17clr,varsize(var_17)-(256*hleplusysize),0,0:memcpy var_30,var17clr,varsize(var_17)-(256*hleplusysize),48896,0*//*:gsel nowgsel:gosub *label_31}:if ( var_20 ){gosub *label_30}}else{
+	poke var_30,49456,peek(stringforinputoutputx,0)
+	if ( var_20 ){gosub *label_30}
+	if ( var_20 ){poke var_30, 49440, peek(var_30, 49440)+hleplusxsize}
+	}
+	}
+	}
+}
+nowgsel=ginfo(3)
+gsel 0
+			pos 0, 0
+				gxc=ginfo(12)
+				gyc=ginfo(13)
+				if gxc=0{}else{gx=gxc}
+				if gxc=0{}else{gy=gyc}
+				gzoom gx, gy, 2, 0, 0, 256, 192
+gsel nowgsel
+//	if ( var_20 ){nowgsel=ginfo(3):gsel 0:redraw 1:redraw 0:gsel nowgsel}
+await 1:loop:poke var_30, 49441, peek(var_30, 49441)+hleplusysize:poke var_30, 49440, 0:cnt2=strlen(stringforinputoutput)
+if cnt2>mempeek((lpeek(ctrlport,5+4*0))){cnt2=(lpeek(ctrlport,5+4*0))}
+mempoke lpeek(ctrlport,5+4*0)+1,cnt2
+memcpy var_29,stringforinputoutput,cnt2,lpeek(ctrlport,5+4*0)+2,0
+mempoke lpeek(ctrlport,5+4*0)+2+cnt2,0
+logmes "address:"+strf("%04X",str(lpeek(ctrlport,5+4*0)))
+sdim messagedatadump,cnt2
+memcpy messagedatadump,var_29,cnt2,0,(lpeek(ctrlport,5+4*0))+2
+stringforinputoutputx=""*/
+sdim messagedatadump,1024
+inputc messagedatadump,(mempeek(lpeek(ctrlport,5+4*0))),2
+if strlen(messagedatadump)>mempeek(lpeek(ctrlport,5+4*0)){mempoke lpeek(ctrlport,5+4*0)+1,mempeek(lpeek(ctrlport,5+4*0))}else{
+mempoke lpeek(ctrlport,5+4*0)+1,strlen(messagedatadump)}
+memmemcpy (lpeek(ctrlport,5+4*0))+2,varptr(messagedatadump),strlen(messagedatadump)
+mempoke lpeek(ctrlport,5+4*0)+2+strlen(messagedatadump),0
+/*showstr=""
+poke showstr,0,lpeek(ctrlport,5+4*0)
+mesc showstr,1*/
+logmes "inputdata:"+messagedatadump
+;memset var_30,0,463,49456
+swbreak
+case 11
+if _kbhit(){lpoke sm,4*1,0xFFFFFFFF}else{lpoke sm,4*1,0}
+await 1
+swbreak
+case 12
+lpoke sm,4*1,0x23
+lpoke sm,4*2,0x23
+swbreak
+case 13
+iofileaddrforcpm =0x80//varptr(datastackforcpmmem)
+swbreak
+case 14
+lpoke sm,4*1,0xFFFFFFFF
+if peek(ctrlport,5+4*0)<=255{drive=0:drive=peek(ctrlport,5+4*0):lpoke sm,4*1,0:logmes drive}else{lpoke sm,4*1,0xFFFFFFFF:lpoke sm,4*2,4}
+swbreak
+case 15
+fcbaddr=0
+showstr="":chkx0a0d=0:fcbaddr=lpeek(ctrlport,5+4*0)
+gosub *hlefcb
+//mempoke fcbaddr+1+8+3+1+1+16+1,0
+fcbcrx=0
+gosub *hlefcbcrxex
+exist fcbfnamenameplsformat
+strsize2=strsize
+ex = (mempeek(fcbaddr + 12) & 0x1f) | (mempeek(fcbaddr + 13) << 5)
+block = strsize2 - ex * 16384
+repeat 16
+if (block > cnt*1024) = 0 {
+mempoke iofileaddrforcpm+cnt+16,0
+}else{
+mempoke iofileaddrforcpm+cnt+16,cnt+1
+}
+loop
+if strsize2=-1{
+lpoke sm,4*1,0xFFFFFFFF
+}else{
+//mempoke fcbaddr+1+8+3+1+1+1,strsize2
+mempoke fcbaddr+14,0
+mempoke fcbaddr+15,128
+mempoke fcbaddr+12,0
+mempoke fcbaddr+13,0
+mempoke fcbaddr+32,0
+//mempoke fcbaddr+15,0
+/*datachka=mempeek(fcbaddr+12)
+datachkb=mempeek(fcbaddr+13)
+datachkc=mempeek(fcbaddr+32)
+datachka=datachkb=datachkc=0
+mempoke fcbaddr+12,datachka
+mempoke fcbaddr+13,datachkb
+mempoke fcbaddr+32,datachkc*/
+if mempeek(fcbaddr+32)=0xFF{if (block < 0) = 0{if (block < 16384) = 0{mempoke fcbaddr+32,127}else{mempoke fcbaddr+32,((block >> 7) & 0xff)}}else{mempoke fcbaddr+32,0}}
+memmemcpy 0x80,fcbaddr,32
+lpoke sm,4*1,0}
+
+swbreak
+case 16
+fcbaddr=0
+showstr="":chkx0a0d=0:fcbaddr=lpeek(ctrlport,5+4*0)
+gosub *hlefcb
+//mempoke fcbaddr+1+8+3+1+1+16+1,0
+fcbcrx=0
+gosub *hlefcbcrxex
+exist fcbfnamenameplsformat
+strsize2=strsize
+if strsize2=-1{
+lpoke sm,4*1,0xFFFFFFFF
+}else{
+mempoke fcbaddr+1+8+3+1+1+1,0
+lpoke sm,4*1,0}
+
+swbreak
+case 17
+fcbaddr=0
+showstr="":chkx0a0d=0:fcbaddr=lpeek(ctrlport,5+4*0)
+gosub *hlefcb
+//mempoke fcbaddr+1+8+3+1+1+16+1,0
+fcbfnamenameplsformattlx="":fcbfnamenameplsformattl=""
+repeat strlen(fcbfnamenameplsformat)
+fcbfnamenameplsformattlx=strmid(fcbfnamenameplsformat,cnt,1)
+//if fcbfnamenameplsformattlx="?"{fcbfnamenameplsformattlx="*"}
+fcbfnamenameplsformattl=fcbfnamenameplsformattl+fcbfnamenameplsformattlx
+loop
+if fcbfnamenameplsformattl="????????.???"{fcbfnamenameplsformattl="*.*"}
+//if fcbfnamenameplsformattl="********.***"{fcbfnamenameplsformattl="*.*"}
+fcbfnamenameplsformatdirlist="":fcbfnamenameplsformatdirlist2="":fcbfnamenameplsformatdirlistformat=""
+fcbfnamenameplsformatdirlistfname=""
+dirlist fcbfnamenameplsformatdirlist,fcbfnamenameplsformattl,1
+filestatforfsearch=stat
+filestatforfsearchi=0
+notesel fcbfnamenameplsformatdirlist
+noteget fcbfnamenameplsformatdirlist2,0
+fcbfnamenameplsformatdirlistfname=fcbfnamenameplsformatdirlist2
+fcbfnamenameplsformatdirlistdot=0
+fcbfnamenameplsformatdirlistdot=instr(fcbfnamenameplsformatdirlist2,0,".")
+if fcbfnamenameplsformatdirlistdot=-1{
+fcbfnamenameplsformatdirlistfname=fcbfnamenameplsformatdirlist2
+}else{
+fcbfnamenameplsformatdirlistfname=strmid(fcbfnamenameplsformatdirlist2,0,fcbfnamenameplsformatdirlistdot)
+fcbfnamenameplsformatdirlistformat=strmid(fcbfnamenameplsformatdirlist2,fcbfnamenameplsformatdirlistdot+1,3)
+}
+fcbfnamenameplsformatdirlistformatlen=0:fcbfnamenameplsformatdirlistfnamelen=0
+fcbfnamenameplsformatdirlistfnamelen=strlen(fcbfnamenameplsformatdirlistfname)
+fcbfnamenameplsformatdirlistformatlen=strlen(fcbfnamenameplsformatdirlistformat)
+fcbfnamenameplsformatdirlistffnsliced=0
+repeat fcbfnamenameplsformatdirlistfnamelen:fcbfnamenameplsformatdirlistffnsliced=peek(fcbfnamenameplsformatdirlistfname,cnt):if fcbfnamenameplsformatdirlistffnsliced>=0x61 and fcbfnamenameplsformatdirlistffnsliced<=0x7a{fcbfnamenameplsformatdirlistffnsliced=fcbfnamenameplsformatdirlistffnsliced-0x20}:poke fcbfnamenameplsformatdirlistfname,cnt,fcbfnamenameplsformatdirlistffnsliced:loop
+repeat fcbfnamenameplsformatdirlistformatlen:fcbfnamenameplsformatdirlistffnsliced=peek(fcbfnamenameplsformatdirlistformat,cnt):if fcbfnamenameplsformatdirlistffnsliced>=0x61 and fcbfnamenameplsformatdirlistffnsliced<=0x7a{fcbfnamenameplsformatdirlistffnsliced=fcbfnamenameplsformatdirlistffnsliced-0x20}:poke fcbfnamenameplsformatdirlistformat,cnt,fcbfnamenameplsformatdirlistffnsliced:loop
+if fcbfnamenameplsformatdirlistfnamelen>=9{fcbfnamenameplsformatdirlistfnamelen=8}
+if fcbfnamenameplsformatdirlistformatlen>=4{fcbfnamenameplsformatdirlistformatlen=3}
+/*memset fcbfnamenameplsformatdirlistfname,32,8-fcbfnamenameplsformatdirlistfnamelen,8-fcbfnamenameplsformatdirlistfnamelen
+memset fcbfnamenameplsformatdirlistformat,32,3-fcbfnamenameplsformatdirlistformatlen,3-fcbfnamenameplsformatdirlistformatlen*/
+lpoke sm,4*1,0
+repeat 32
+mempoke iofileaddrforcpm+cnt,0
+loop
+repeat 11:mempoke iofileaddrforcpm+1+cnt,32:loop
+memmemcpy iofileaddrforcpm+1,varptr(fcbfnamenameplsformatdirlistfname),fcbfnamenameplsformatdirlistfnamelen
+memmemcpy iofileaddrforcpm+1+8,varptr(fcbfnamenameplsformatdirlistformat),fcbfnamenameplsformatdirlistformatlen
+exist fcbfnamenameplsformatdirlist2
+logmes fcbfnamenameplsformatdirlist2
+strsize2=strsize
+ex = (mempeek(fcbaddr + 12) & 0x1f) | (mempeek(fcbaddr + 13) << 5)
+block = strsize2 - ex * 16384
+//block=strsize
+//if block=-1{}else{
+	if (strsize2 < 16384) = 0{mempoke iofileaddrforcpm+13,127}else{mempoke iofileaddrforcpm+13,((strsize2 >> 7) & 0xff)}
+repeat 16
+if (strsize2 > cnt*1024) = 0 {
+mempoke iofileaddrforcpm+cnt+16,0
+}else{
+mempoke iofileaddrforcpm+cnt+16,cnt+1
+}
+loop
+//}
+logmes fcbfnamenameplsformatdirlistfname
+
+/*exist fcbfnamenameplsformat
+strsize2=strsize*/
+if filestatforfsearch=0{
+lpoke sm,4*1,0xFFFFFFFF
+lpoke sm,4*2,0
+}else{
+//memlpoke fcbaddr+1+8+3+1+1+1,0
+}
+
+swbreak
+case 18
+lpoke sm,4*1,0x0
+/*mesc filestatforfsearch
+mesc filestatforfsearchi*/
+fcbaddr=0
+showstr="":chkx0a0d=0:fcbaddr=lpeek(ctrlport,5+4*0)
+gosub *hlefcb
+fcbfnamenameplsformatdirlist2="":fcbfnamenameplsformatdirlistformat=""
+fcbfnamenameplsformatdirlistfname=""
+filestatforfsearchi=filestatforfsearchi+1
+if filestatforfsearchi=filestatforfsearch{
+lpoke sm,4*1,0xFFFFFFFF
+lpoke sm,4*2,0
+filestatforfsearch=0
+filestatforfsearchi=0
+fcbfnamenameplsformatdirlist="":fcbfnamenameplsformatdirlist2="":fcbfnamenameplsformatdirlistformat=""
+fcbfnamenameplsformatdirlistfname="":filestatforfsearchi=0}else{
+notesel fcbfnamenameplsformatdirlist
+fcbfnamenameplsformatdirlist2=""
+memset fcbfnamenameplsformatdirlist2,0,64,0
+noteget fcbfnamenameplsformatdirlist2,filestatforfsearchi
+fcbfnamenameplsformatdirlistdot=0
+fcbfnamenameplsformatdirlistdot=instr(fcbfnamenameplsformatdirlist2,0,".")
+if fcbfnamenameplsformatdirlistdot=-1{
+	memset fcbfnamenameplsformatdirlistfname,0,64,0
+	memset fcbfnamenameplsformatdirlistformat,0,64,0
+fcbfnamenameplsformatdirlistfname=fcbfnamenameplsformatdirlist2
+}else{
+	fcbfnamenameplsformatdirlistfname=""
+	fcbfnamenameplsformatdirlistformat=""
+	memset fcbfnamenameplsformatdirlistfname,0,64,0
+	memset fcbfnamenameplsformatdirlistformat,0,64,0
+fcbfnamenameplsformatdirlistfname=strmid(fcbfnamenameplsformatdirlist2,0,fcbfnamenameplsformatdirlistdot)
+fcbfnamenameplsformatdirlistformat=strmid(fcbfnamenameplsformatdirlist2,fcbfnamenameplsformatdirlistdot+1,3)
+}
+fcbfnamenameplsformatdirlistformatlen=0:fcbfnamenameplsformatdirlistfnamelen=0
+fcbfnamenameplsformatdirlistfnamelen=strlen(fcbfnamenameplsformatdirlistfname)
+fcbfnamenameplsformatdirlistformatlen=strlen(fcbfnamenameplsformatdirlistformat)
+repeat fcbfnamenameplsformatdirlistfnamelen:fcbfnamenameplsformatdirlistffnsliced=peek(fcbfnamenameplsformatdirlistfname,cnt):if fcbfnamenameplsformatdirlistffnsliced>=0x61 and fcbfnamenameplsformatdirlistffnsliced<=0x7a{fcbfnamenameplsformatdirlistffnsliced=fcbfnamenameplsformatdirlistffnsliced-0x20}:poke fcbfnamenameplsformatdirlistfname,cnt,fcbfnamenameplsformatdirlistffnsliced:loop
+repeat fcbfnamenameplsformatdirlistformatlen:fcbfnamenameplsformatdirlistffnsliced=peek(fcbfnamenameplsformatdirlistformat,cnt):if fcbfnamenameplsformatdirlistffnsliced>=0x61 and fcbfnamenameplsformatdirlistffnsliced<=0x7a{fcbfnamenameplsformatdirlistffnsliced=fcbfnamenameplsformatdirlistffnsliced-0x20}:poke fcbfnamenameplsformatdirlistformat,cnt,fcbfnamenameplsformatdirlistffnsliced:loop
+if fcbfnamenameplsformatdirlistfnamelen>=9{fcbfnamenameplsformatdirlistfnamelen=8}
+if fcbfnamenameplsformatdirlistformatlen>=4{fcbfnamenameplsformatdirlistformatlen=3}
+/*memset fcbfnamenameplsformatdirlistfname,32,8-fcbfnamenameplsformatdirlistfnamelen,8-fcbfnamenameplsformatdirlistfnamelen
+memset fcbfnamenameplsformatdirlistformat,32,3-fcbfnamenameplsformatdirlistformatlen,3-fcbfnamenameplsformatdirlistformatlen
+*/
+if filestatforfsearchi>=filestatforfsearch{
+lpoke sm,4*1,0xFFFFFFFF
+lpoke sm,4*2,0
+filestatforfsearch=0
+filestatforfsearchi=0
+}else{
+lpoke sm,4*1,0
+repeat 32
+mempoke iofileaddrforcpm+cnt,0
+loop
+repeat 11:mempoke iofileaddrforcpm+1+cnt,32:loop
+//memset var_29,0,11,iofileaddrforcpm+1
+memmemcpy iofileaddrforcpm+1,varptr(fcbfnamenameplsformatdirlistfname),fcbfnamenameplsformatdirlistfnamelen
+memmemcpy iofileaddrforcpm+1+8,varptr(fcbfnamenameplsformatdirlistformat),fcbfnamenameplsformatdirlistformatlen
+exist fcbfnamenameplsformatdirlist2
+strsize2=strsize
+ex = (mempeek(fcbaddr + 12) & 0x1f) | (mempeek(fcbaddr + 13) << 5)
+block = strsize2 - ex * 16384
+//block=strsize
+//if block=-1{}else{
+	if (strsize2 < 16384) = 0{mempoke iofileaddrforcpm+13,127}else{mempoke iofileaddrforcpm+13,((strsize2 >> 7) & 0xff)}
+repeat 16
+if (strsize2 > cnt*1024) = 0 {
+mempoke iofileaddrforcpm+cnt+16,0
+}else{
+mempoke iofileaddrforcpm+cnt+16,cnt+1
+}
+loop
+//}
+logmes fcbfnamenameplsformatdirlistfname
+}
+//memlpoke fcbaddr+1+8+3+1+1+1,0
+}
+swbreak
+case 19
+fcbaddr=0
+showstr="":chkx0a0d=0:fcbaddr=lpeek(ctrlport,5+4*0)
+gosub *hlefcb
+exist fcbfnamenameplsformat
+strsize2=strsize
+if strsize2=-1{lpoke sm,4*1,0xFFFFFFFF}else{
+sdim fcbreaddatastr,256
+delete fcbfnamenameplsformat
+lpoke sm,4*1,0}
+swbreak
+case 20
+fcbaddr=0
+showstr="":chkx0a0d=0:fcbaddr=lpeek(ctrlport,5+4*0)
+gosub *hlefcb
+exist fcbfnamenameplsformat
+strsize2=strsize
+//<fcbcr*128
+if strsize2=-1{lpoke sm,4*1,0x01}else{
+sdim fcbreaddatastr,256
+bload fcbfnamenameplsformat,fcbreaddatastr,256,fcbcrx*128
+logmes fcbcrx
+//mempoke fcbaddr+1+8+3+1+1+16+1,mempeek(fcbaddr+1+8+3+1+1+16+1)+1
+memmemcpy iofileaddrforcpm,varptr(fcbreaddatastr),128
+/*repeat 128
+mempoke iofileaddrforcpm+cnt,peek(fcbreaddatastr,cnt)
+loop*/
+gosub *hlefcbcrxex
+//if strsize2>fcbcr*128{lpoke sm,4*1,0x00}else{
+//if (strsize2-fcbcrx)<128{memset var_29,0x1a,128-(strsize2-fcbcrx*128),iofileaddrforcpm+(strsize2-fcbcrx)}
+lpoke sm,4*1,0
+if strsize2>=fcbcrx*128{lpoke sm,4*1,0}else{
+lpoke sm,4*1,1}}
+swbreak
+case 21
+fcbaddr=0
+showstr="":chkx0a0d=0:fcbaddr=lpeek(ctrlport,5+4*0)
+gosub *hlefcb
+exist fcbfnamenameplsformat
+strsize2=strsize
+if strsize2=-1{lpoke sm,4*1,-1}else{
+//if strsize2<fcbcr*128{lpoke sm,4*1,0xFF}else{
+asxxxxxxx=((fcbcrx*128)-strsize2)
+if asxxxxxxx<=-1{asxxxxxxx=0}
+sdim fcbreaddatastr,128//strsize2+128+asxxxxxxx
+//bload fcbfnamenameplsformat,fcbreaddatastr
+//memmemcpy varptr(fcbreaddatastr)+fcbcrx*128,iofileaddrforcpm,128
+memmemcpy varptr(fcbreaddatastr),iofileaddrforcpm,128
+bsave fcbfnamenameplsformat,fcbreaddatastr,128,fcbcrx*128
+//poke var_29,fcbaddr+1+8+3+1+1+16+1,peek(var_29,fcbaddr+1+8+3+1+1+16+1)+1
+gosub *hlefcbcrxex
+if strsize2>=fcbcrx*128{lpoke sm,4*1,0x00}else{
+randomize:lpoke sm,4*1,1}}
+swbreak
+case 22
+fcbaddr=0
+showstr="":chkx0a0d=0:fcbaddr=lpeek(ctrlport,5+4*0)
+gosub *hlefcb
+sdim fcbreaddatastr,128//*fcbcr
+if fcbfnamenameplsformat=""{randomize:lpoke sm,4*1,-1}else{
+exist fcbfnamenameplsformat
+if strsize=-1{
+bsave fcbfnamenameplsformat,fcbreaddatastr
+}
+mempoke fcbaddr+14,0
+mempoke fcbaddr+15,128
+mempoke fcbaddr+12,0
+mempoke fcbaddr+13,0
+mempoke fcbaddr+32,0
+randomize:lpoke sm,4*1,0
+}
+swbreak
+case 23
+fcbaddr=0
+showstr="":chkx0a0d=0:fcbaddr=lpeek(ctrlport,5+4*0)
+gosub *hlefcb
+fcbfnamenameplsformatbak=""
+exist fcbfnamenameplsformat
+strsize2=strsize
+fcbfnamenameplsformatbak=fcbfnamenameplsformat
+if strsize2=-1{lpoke sm,4*1,0xFFFFFFFF}else{
+ex = (mempeek(fcbaddr + 12) & 0x1f) | (mempeek(fcbaddr + 13) << 5)
+block = strsize2 - ex * 16384
+repeat 16
+if (block > cnt*1024) = 0 {
+mempoke iofileaddrforcpm+cnt+16,0
+}else{
+mempoke iofileaddrforcpm+cnt+16,cnt+1
+}
+loop
+sdim fcbreaddatastr,256
+fcbaddr=lpeek(ctrlport,5+4*0)+16
+gosub *hlefcbfileread
+bcopy fcbfnamenameplsformatbak,fcbfnamenameplsformat
+delete fcbfnamenameplsformatbak
+lpoke sm,4*1,0}
+swbreak
+case 24
+lpoke sm,4*2,0
+swbreak
+case 25
+lpoke sm,4*1,drive
+swbreak
+case 26
+logmes "address:"+strf("%04X",str(fcbaddr))
+iofileaddrforcpm=lpeek(ctrlport,5+4*0)
+swbreak
+case 28
+swbreak
+case 29
+lpoke sm,4*2,0
+swbreak
+case 30
+fcbaddr=0
+showstr="":chkx0a0d=0:fcbaddr=lpeek(ctrlport,5+4*0)
+gosub *hlefcb
+//mempoke fcbaddr+1+8+3+1+1+16+1,0
+fcbcrx=0
+gosub *hlefcbcrxex
+exist fcbfnamenameplsformat
+strsize2=strsize
+if strsize2=-1{
+lpoke sm,4*1,0xFFFFFFFF
+poke sm,4*2+1,0
+}else{
+ex = (mempeek(fcbaddr + 12) & 0x1f) | (mempeek(fcbaddr + 13) << 5)
+block = strsize2 - ex * 16384
+/*mempoke fcbaddr+14,0
+mempoke fcbaddr+15,128
+mempoke fcbaddr+12,0
+mempoke fcbaddr+13,0
+mempoke fcbaddr+32,0*/
+if (block < 0) = 0{if (block < 16384) = 0{mempoke fcbaddr+32,127}else{mempoke fcbaddr+32,((block >> 7) & 0xff)}}else{mempoke fcbaddr+32,0}
+lpoke sm,4*1,0}
+
+swbreak
+case 31
+lpoke sm,4*2,0xFD00
+swbreak
+case 32
+if peek(ctrlport,5+4*0)=0xFF{lpoke sm,4*1,userid}else{userid=peek(ctrlport,5+4*0)}
+swbreak
+case 33
+fcbaddr=0
+showstr="":chkx0a0d=0:fcbaddr=lpeek(ctrlport,5+4*0)
+gosub *hlefcb
+exist fcbfnamenameplsformat
+strsize2=strsize
+//<fcbcr*128
+if strsize2=-1{lpoke sm,4*1,0x01}else{
+sdim fcbreaddatastr,256
+fcbcrx=mempeek(fcbaddr+33) | (mempeek(fcbaddr+34) << 8)
+bload fcbfnamenameplsformat,fcbreaddatastr,256,fcbcrx*128
+logmes fcbcrx
+//mempoke fcbaddr+1+8+3+1+1+16+1,mempeek(fcbaddr+1+8+3+1+1+16+1)+1
+memmemcpy iofileaddrforcpm,varptr(fcbreaddatastr),128
+/*repeat 128
+mempoke iofileaddrforcpm+cnt,peek(fcbreaddatastr,cnt)
+loop*/
+fcbcrx=fcbcrx-1
+gosub *hlefcbcrxex
+fcbcrx=fcbcrx+1
+//if strsize2>fcbcr*128{lpoke sm,4*1,0x00}else{
+if (strsize2-fcbcrx)<128{memset var_29,0x1a,128-(strsize2-fcbcrx*128),iofileaddrforcpm+(strsize2-fcbcrx)}
+lpoke sm,4*1,0
+/*if strsize2>fcbcrx*128{lpoke sm,4*1,0}else{
+lpoke sm,4*1,1}*/}
+swbreak
+case 34
+case 40
+fcbaddr=0
+showstr="":chkx0a0d=0:fcbaddr=lpeek(ctrlport,5+4*0)
+gosub *hlefcb
+exist fcbfnamenameplsformat
+strsize2=strsize
+if strsize2=-1{lpoke sm,4*1,2}else{
+//if strsize2<fcbcr*128{lpoke sm,4*1,0xFF}else{
+fcbcrx=mempeek(fcbaddr+33) | (mempeek(fcbaddr+34) << 8)
+asxxxxxxx=((fcbcrx*128)-strsize2)
+if asxxxxxxx<=-1{asxxxxxxx=0}
+/*sdim fcbreaddatastr,fcbcrx*128+128+asxxxxxxx
+bload fcbfnamenameplsformat,fcbreaddatastr
+memmemcpy varptr(fcbreaddatastr)+fcbcrx*128,iofileaddrforcpm,128
+bsave fcbfnamenameplsformat,fcbreaddatastr*/
+sdim fcbreaddatastr,128
+memmemcpy varptr(fcbreaddatastr),iofileaddrforcpm,128
+bsave fcbfnamenameplsformat,fcbreaddatastr,128,fcbcrx*128
+//poke var_29,fcbaddr+1+8+3+1+1+16+1,peek(var_29,fcbaddr+1+8+3+1+1+16+1)+1
+fcbcrx=fcbcrx-1
+gosub *hlefcbcrxex
+fcbcrx=fcbcrx+1
+/*if strsize2>fcbcrx*128{lpoke sm,4*1,0x00}else{
+randomize:lpoke sm,4*1,2}*/}
+swbreak
+case 35
+fcbaddr=0
+showstr="":chkx0a0d=0:fcbaddr=lpeek(ctrlport,5+4*0)
+gosub *hlefcb
+//mempoke fcbaddr+1+8+3+1+1+16+1,0
+fcbcrx=0
+gosub *hlefcbcrxex
+exist fcbfnamenameplsformat
+strsize2=strsize
+if strsize2=-1{
+lpoke sm,4*1,0xFFFFFFFF
+lpoke sm,4*2,0x00
+}else{
+strsize3=strsize2 >> 7
+mempoke fcbaddr+33,(strsize3 & 0xff)
+mempoke fcbaddr+34,((strsize3 >> 8) & 0xff)
+mempoke fcbaddr+35,((strsize3 >> 16) & 0xff)
+lpoke sm,4*1,0}
+if fcbfnamenameplsformat=""{
+lpoke sm,4*1,0xFFFFFFFF
+lpoke sm,4*2,0x00}
+swbreak
+case 36
+fcbaddr=0
+showstr="":chkx0a0d=0:fcbaddr=lpeek(ctrlport,5+4*0)
+record=mempeek(fcbaddr+32) & 0x7f
+record=record+(mempeek(fcbaddr+1+8+3) & 0x1f) << 7
+record=record+(mempeek(fcbaddr+1+8+3+1) << 12)
+record=record+(mempeek(fcbaddr+1+8+3+1+1) << 20)
+mempoke fcbaddr+33,record & 0xff
+mempoke fcbaddr+34,(record >> 8) & 0xff
+mempoke fcbaddr+35,(record >> 16) & 0xff
+swbreak
+case 37
+mesc "\nUnable to reset the drive."
+lpoke sm,4*1,-1
+swbreak
+case 38
+runlabeller=*bdos
+fcbaddr=0
+showstr="":chkx0a0d=0:fcbaddr=lpeek(ctrlport,5+4*0)
+gosub *hlefcb
+exist fcbfnamenameplsformat
+strsize2=strsize
+if strsize2=-1{lpoke sm,4*1,0xFFFFFFFF}else{
+lpoke runlabeller,0,_faddproc(fcbfnamenameplsformat)
+gosub runlabeller
+lpoke sm,4*2,lpeek(runlabeller,0)
+lpoke sm,4*1,0
+}
+swbreak
+case 110
+if wpeek(ctrlport,5+4*0)=0xFFFF{
+lpoke sm,4*1,delimiterfortxt
+}else{
+delimiterfortxt=lpeek(ctrlport,5+4*0)
+}
+swbreak
+case 39
+case 0xFFFFFFFF
+goto *onexits
+swbreak
+default
+lpoke sm,4*1,0
+swbreak
+/*case 0
+goto *onexits
+swbreak
+case 1
+dupptr fnamepage,lpeek(ctrlport,5+4*0),4096+1,2
+fnameexeccall=fnamepage
+//exec nowdir+"\\app_process "+fnamepage
+#undef fnamepage
+swbreak
+case 2
+gsel 0,lpeek(ctrlport,5+4*0)
+cls 0:redraw 1
+swbreak
+case 3
+poke sm2,(lpeek(ctrlport,5+4*0)*2+1)+20480,1
+repeat:if peek(sm2,(lpeek(ctrlport,5+4*0)*2)+20480)=0{break}:loop
+lpoke sm,4*1,peek(sm2,(lpeek(ctrlport,5+4*0)*2)+20480)
+swbreak
+case 4
+poke sm2,(lpeek(ctrlport,5+4*0)*2)+20480,lpeek(ctrlport,5+4*1)
+poke sm2,(lpeek(ctrlport,5+4*0)*2+1)+20480,2
+repeat:if peek(sm2,(lpeek(ctrlport,5+4*0)*2)+20480)=0{break}:loop
+swbreak
+case 5
+switch lpeek(ctrlport,5+4*0)
+case 0
+lpoke sm2,40960-4097-4,lpeek(sm2,40960-4097-4)+1
+swbreak
+case 1
+lpoke sm2,40960-4097-4,0
+swbreak
+case 2
+lpoke sm2,40960-4097-8,lpeek(sm2,40960-4097-8)+1
+calllabix=calllabix+1
+swbreak
+case 3
+lpoke sm2,40960-4097-8,0
+swbreak
+swend
+swbreak
+case 6
+repeat 4096
+if peek(sm2,(cnt*2+1)+20480)=3{
+lpoke sm,4*1,cnt
+}
+loop
+swbreak
+case 7
+poke sm2,(lpeek(ctrlport,5+4*0)*2+1)+20480,3
+swbreak*/
+swend
+#ifdef _debug
+await
+#endif
+return
+
+*erroravoider
+return
+*ctrlseax
+switch wparam2
+case 3
+mesc "\n",1
+poke ctrlport,4,0
+cmdline=""
+i=0:equalcheck=0
+repeat strlen(cmdline):if peek(cmdline,cnt)>='a' and peek(cmdline,cnt)<='z'{poke cmdline,cnt,peek(cmdline,cnt)-32}:loop
+repeat strlen(cmdline):if strmid(cmdline,cnt,1)=" "{i=i+1}else{if strmid(cmdline,cnt,1)="="{i=i+1:equalcheck=equalcheck+1}else{cmdname(i)=cmdname(i)+strmid(cmdline,cnt,1)}}:loop
+goto *ccp
+swbreak
+swend
+return

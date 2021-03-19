@@ -1,0 +1,24 @@
+#include "stdcall.as"
+dupptr cmdoptionptr,0x50000000+5+4*21,4
+dupptr submitptr,0x50000000+5+4*24,4
+dupptr linecount,0x50000000+5+4*25,4
+dupptr linesign,0x50000000+5+4*26,4
+dupptr cmdoptionstr,cmdoptionptr+128*1+0x20,128,2
+dupptr submitstr,submitptr,256*256,2
+//bsave "steveedump.bin",cmdoptionstr
+notesel submitstr
+exist cmdoptionstr+".sub"
+if strsize!=-1{
+noteload cmdoptionstr+".sub"
+submitstr=submitstr+"\n"
+lpoke linecount,0,notemax
+lpoke linesign,0,1
+/*repeat
+if linesign=0{break}
+loop*/
+a16bitcb=0:syscallcb=syscall(0,0,a16bitcb)
+;end
+}else{
+//a16bitcb=0:syscallcb=syscall(1,0,a16bitcb)
+a16bitcb=0:syscallcb=syscall(0,0,a16bitcb)
+}

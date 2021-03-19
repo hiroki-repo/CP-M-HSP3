@@ -1,0 +1,5 @@
+#include "stdcall.as"
+;callback16bitdata=0:callf=syscall(2,peek(messagedata,cnt),callback16bitdata)
+messagedata="Hello, World!$"
+callback16bitdata=0:callf=syscall(9,varptr(messagedata),callback16bitdata)
+callback16bitdata=0:callf=syscall(0,0,callback16bitdata):end
