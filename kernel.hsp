@@ -93,6 +93,7 @@ poke ctrlport,4,0
 lpoke sm,5+4*22,varptr(var_29)
 mem16bitshiftaddr lpeek(sm,5+4*22)
 if vartype(iosysbin)=2{memfile iosysbin:ldim prtdriver,1:lpoke prtdriver,0,_faddproc("MEM:IO.SYS"):gosub prtdriver}
+cmdline="":cmdline=dircmdlines:sdim cmdname,128,512:i=0:repeat strlen(cmdline):if strmid(cmdline,cnt,1)=" "{i=i+1}else{cmdname(i)=cmdname(i)+strmid(cmdline,cnt,1)}:loop:exist cmdname(0)+".CAX":if strsize!-1{goto *xecuter}:exist cmdname(0)+".COM":if strsize!-1{goto *xecuter}
 mesc "\n",1
 goto *ccp
 *xecuter
