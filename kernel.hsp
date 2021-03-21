@@ -12,7 +12,7 @@
 #defcfunc _kbhitc
 if lpeek(ctrlport@,5+4*18)!0{
 if lpeek(ctrlport@,5+4*29)!0{
-ldim prtdriver,1:lpoke prtdriver,lpeek(ctrlport@,5+4*29):gosub prtdriver
+ldim prtdriver,1:lpoke prtdriver,0,lpeek(ctrlport@,5+4*29):gosub prtdriver
 return lpeek(ctrlport@,5+4*19)
 }
 }else{
@@ -22,7 +22,7 @@ return
 #defcfunc _getchc
 if lpeek(ctrlport@,5+4*18)!0{
 if lpeek(ctrlport@,5+4*30)!0{
-ldim prtdriver,1:lpoke prtdriver,lpeek(ctrlport@,5+4*30):gosub prtdriver
+ldim prtdriver,1:lpoke prtdriver,0,lpeek(ctrlport@,5+4*30):gosub prtdriver
 return lpeek(ctrlport@,5+4*20)
 }
 }else{
@@ -41,7 +41,7 @@ if lpeek(ctrlport@,5+4*28)!0{
 lpoke ctrlport@,5+4*21,varptr(prm_0x)
 lpoke ctrlport@,5+4*22,varsize(prm_0x)
 lpoke ctrlport@,5+4*23,prm_1x
-ldim prtdriver,1:lpoke prtdriver,lpeek(ctrlport@,5+4*28):gosub prtdriver
+ldim prtdriver,1:lpoke prtdriver,0,lpeek(ctrlport@,5+4*28):gosub prtdriver
 }
 }else{
 printf "%s",prm_0x
@@ -456,7 +456,7 @@ mesc showstr,1
 
 swbreak
 case 3//reader input
-if lpeek(ctrlport,5+4*25)!0{ldim prtdriver,1:lpoke prtdriver,lpeek(ctrlport,5+4*25):gosub prtdriver
+if lpeek(ctrlport,5+4*25)!0{ldim prtdriver,1:lpoke prtdriver,0,lpeek(ctrlport,5+4*25):gosub prtdriver
 }else{
 dupptr devfileopeneddata,varptr(sm)+4*1,1,2
 bload "AUX",devfileopeneddata
@@ -464,7 +464,7 @@ bload "AUX",devfileopeneddata
 }
 swbreak
 case 4
-if lpeek(ctrlport,5+4*26)!0{ldim prtdriver,1:lpoke prtdriver,lpeek(ctrlport,5+4*26):gosub prtdriver
+if lpeek(ctrlport,5+4*26)!0{ldim prtdriver,1:lpoke prtdriver,0,lpeek(ctrlport,5+4*26):gosub prtdriver
 }else{
 dupptr stringforvar24dev,varptr(ctrlport)+5+4*0,1,2
 bsave "AUX",stringforvar24dev
@@ -473,7 +473,7 @@ swbreak
 case 5
 //stringforvar24=""
 //lpoke stringforvar24,0,peek(ctrlport,5+4*0)
-if lpeek(ctrlport,5+4*27)!0{ldim prtdriver,1:lpoke prtdriver,lpeek(ctrlport,5+4*27):gosub prtdriver
+if lpeek(ctrlport,5+4*27)!0{ldim prtdriver,1:lpoke prtdriver,0,lpeek(ctrlport,5+4*27):gosub prtdriver
 }else{
 dupptr stringforvar24dev,varptr(ctrlport)+5+4*0,1,2
 bsave "PRN",stringforvar24dev
