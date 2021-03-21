@@ -30,20 +30,21 @@ return _getch()
 }
 return
 #deffunc mesc str prm_0,int prm_1
+prm_0x="":prm_1x=prm_1
+if prm_1=0{
+prm_0x=prm_0+"\n"
+}else{
+prm_0x=prm_0
+}
 if lpeek(ctrlport@,5+4*18)!0{
 if lpeek(ctrlport@,5+4*28)!0{
-prm_0x="":prm_0x=prm_0:prm_1x=prm_1
 lpoke ctrlport@,5+4*21,varptr(prm_0x)
 lpoke ctrlport@,5+4*22,varsize(prm_0x)
 lpoke ctrlport@,5+4*23,prm_1x
 ldim prtdriver,1:lpoke prtdriver,lpeek(ctrlport@,5+4*28):gosub prtdriver
 }
 }else{
-if prm_1=0{
-printf "%s",prm_0+"\n"
-}else{
-printf "%s",prm_0
-}
+printf "%s",prm_0x
 }
 return
 #deffunc inputc array prm_0,int prm_1,int prm_2
