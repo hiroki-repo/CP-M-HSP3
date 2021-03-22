@@ -503,9 +503,11 @@ istyped=0
 hlekeygetenabled=1
 //repeat
 wparam2=0
-if _kbhitc(){wparam2=_getchc()
+/*if _kbhitc(){wparam2=_getchc()
 gosub *ctrlseax
-}
+}*/
+wparam2=_getchc()
+gosub *ctrlseax
 lpoke sm,4*1,wparam2
 /*poke var_30,49456,lpeek(sm,4*1)
 if ( var_20 ){gosub *label_30}
