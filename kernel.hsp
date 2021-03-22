@@ -536,7 +536,7 @@ memset var_30,0,463,49456
 }*/
 
 showstr=""
-poke showstr,0,lpeek(ctrlport,5+4*0)
+poke showstr,0,peek(ctrlport,5+4*0)
 mesc showstr,1
 }
 }
