@@ -11754,6 +11754,7 @@ poke SZHVC_addvar_52,0,peek(stack(0),1)
 poke stack(0),1,SZHVC_addvar_52
 	return
 *z80opcodeinterpretsw
+#ifdef __useslowz80emulation_flag__
 switch opcode
 case 0
 gosub *opcode_00
@@ -17162,6 +17163,7 @@ case 255
 gosub *opcode_FF
 swbreak
 swend
+#endif
 return
 #global
 #endif
