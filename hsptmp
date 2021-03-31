@@ -9,10 +9,11 @@ goto *memoryaccesshnd@
 #include "z80.as"
 //#include "z80jit.as"
 //z80jitintervaljobset *cfcfc,2
-//z80jitintervalset -1//0
+/*z80jitintervalset -1//0
 #include "stdcall.as"
 dupptr var_29,get16bitcompatiblememaddr(),65540,2
-dupptr tgcmdfilename,get32bitfcbaddr(),128,2
+dupptr tgcmdfilename,get32bitfcbaddr(),128,2*/
+sdim var_29,65540
 wpoke stackformt@z80moduleaccess(0,0),12,0xFA00
 //wpoke jitstack@m1(0),12,0xFA00
 //wpoke var_29,0xFA00,0xF500
@@ -27,7 +28,7 @@ poke var_29,7,0xc9
 wpoke var_29,1,0xF500
 poke var_29,5,0xc3
 wpoke var_29,6,0xF400*/
-tgcmdfilename2=""
+/*tgcmdfilename2=""
 tgcmdfilename2=tgcmdfilename+".com"
 exist tgcmdfilename2
 strsize2=strsize
@@ -35,7 +36,7 @@ if strsize2!=-1{
 sdim databinaryfile,strsize2
 bload tgcmdfilename2,databinaryfile
 }
-memcpy var_29,databinaryfile,strsize2,0x100,0
+memcpy var_29,databinaryfile,strsize2,0x100,0*/
 address=0x100
 /*repeat
 z80jitrun address
@@ -73,7 +74,7 @@ return 0
 swbreak
 case 1
 tx16bitreg=0:lpoke tx16bitreg,0,wpeek(stackformt@z80moduleaccess(0,0),6)
-sysclret=syscall(stackpeek(0,0,2),wpeek(stackformt@z80moduleaccess(0,0),4),tx16bitreg)
+stackpoke 0,0,0,syscall(stackpeek(0,0,2),wpeek(stackformt@z80moduleaccess(0,0),4),tx16bitreg)
 wpoke stackformt@z80moduleaccess(0,0),6,tx16bitreg
 /*address=wpeek(var_29,wpeek(stack@z80moduleaccess(0),12))
 wpoke stack@z80moduleaccess(0),12,wpeek(stack@z80moduleaccess(0),12)+2*/

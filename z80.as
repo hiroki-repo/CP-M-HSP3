@@ -5,7 +5,7 @@
 
 #ifndef z80moduledefined
 #define global z80moduledefined
-#module
+#module z80moduleaccess
 #deffunc gocaine_z80init 
 dim opcodecc_op,256
 dim opcodecc_cb,256
@@ -4200,8 +4200,6 @@ wpoke stack(0),10,z80readmem16(wpeek(stack(0),10))
 }else{wpoke stack(0),10,wpeek(stack(0),10)+2}
 return
 *opcode_cb
-cbopcodecallid=z80readmem(wpeek(stack(0),10))
-cbopcodecallidforbit=(cbopcodecallid-0x40)/8
 opcodeforsubcall=z80readmem(wpeek(stack(0),10))
 wpoke stack(0),10,wpeek(stack(0),10)+1
 gosub opcodeaddr_cb(opcodeforsubcall)
@@ -5100,6 +5098,8 @@ return
 *opcode_cb_FD
 *opcode_cb_FE
 *opcode_cb_FF
+cbopcodecallid=opcodeforsubcall
+cbopcodecallidforbit=(opcodeforsubcall-0x40)/8
 if cbopcodecallid>=0x40 & cbopcodecallid<=127{
 regfromopcodeforbit=(cbopcodecallid-0x40)-(8*cbopcodecallidforbit)
 switch regfromopcodeforbit
@@ -5383,8 +5383,8 @@ wpoke stack(0),10,z80readmem16(wpeek(stack(0),10))
 }else{wpoke stack(0),10,wpeek(stack(0),10)+2}
 return
 *opcode_dd
-opcodeidforddopcode=z80readmem(wpeek(stack(0),10))
 opcodeforsubcall=z80readmem(wpeek(stack(0),10))
+opcodeidforddopcode=opcodeforsubcall
 wpoke stack(0),10,wpeek(stack(0),10)+1
 gosub opcodeaddr_dd(opcodeforsubcall)
 poke stack(0),14,peek(stack(0),14)+1
@@ -5587,11 +5587,11 @@ return
 *opcode_dd_5c
 *opcode_dd_5d
 *opcode_dd_5e
-opcodeidforddopcodeaddcall=((opcodeidforddopcode-0x40)/8)
-opcodeidforddopcodeaddcall2=((opcodeidforddopcode-0x40)-(opcodeidforddopcodeaddcall*8))
-opcodeidforddopcodeaddcall3=opcodeidforddopcodeaddcall2-4
-if opcodeidforddopcode>=0x44 & opcodeidforddopcode<=0x5E{
-switch opcodeidforddopcodeaddcall
+opcodeforsubcalladdcall=((opcodeforsubcall-0x40)/8)
+opcodeforsubcalladdcall2=((opcodeforsubcall-0x40)-(opcodeforsubcalladdcall*8))
+opcodeforsubcalladdcall3=opcodeforsubcalladdcall2-4
+if opcodeforsubcall>=0x44 & opcodeforsubcall<=0x5E{
+switch opcodeforsubcalladdcall
 case 0
 regforbit=3
 swbreak
@@ -5617,9 +5617,9 @@ case 7
 regforbit=0
 swbreak
 swend
-if opcodeidforddopcodeaddcall3=0 {if regforbit=-1{}else{poke stack(0),regforbit,peek(stack(1),11)}}
-if opcodeidforddopcodeaddcall3=1 {if regforbit=-1{}else{poke stack(0),regforbit,peek(stack(1),10)}}
-if opcodeidforddopcodeaddcall3=2 {z80eaddr=z80readmem(wpeek(stack(0),10)):if z80eaddr>=128{z80eaddr=z80eaddr-256}:if regforbit=-1{}else{poke stack(0),regforbit,z80readmem(wpeek(stack(1),10)+z80eaddr):wpoke stack(0),10,wpeek(stack(0),10)+1}}
+if opcodeforsubcalladdcall3=0 {if regforbit=-1{}else{poke stack(0),regforbit,peek(stack(1),11)}}
+if opcodeforsubcalladdcall3=1 {if regforbit=-1{}else{poke stack(0),regforbit,peek(stack(1),10)}}
+if opcodeforsubcalladdcall3=2 {z80eaddr=z80readmem(wpeek(stack(0),10)):if z80eaddr>=128{z80eaddr=z80eaddr-256}:if regforbit=-1{}else{poke stack(0),regforbit,z80readmem(wpeek(stack(1),10)+z80eaddr):wpoke stack(0),10,wpeek(stack(0),10)+1}}
 }
 return
 
@@ -6315,8 +6315,6 @@ wpoke stack(0),10,wpeek(stack(0),10)+1
 return
 
 *opcode_dd_CB
-cbopcodecallid=z80readmem(wpeek(stack(0),10)+1)
-cbopcodecallidforbit=(cbopcodecallid-0x40)/8
 opcodeforsubcall=z80readmem(wpeek(stack(0),10)+1)
 gosub opcodeaddr_dd_cb(opcodeforsubcall)
 wpoke stack(0),10,wpeek(stack(0),10)+2
@@ -7335,6 +7333,8 @@ return
 *opcode_dd_cb_FD
 *opcode_dd_cb_FE
 *opcode_dd_cb_FF
+cbopcodecallid=opcodeforsubcall
+cbopcodecallidforbit=(opcodeforsubcall-0x40)/8
 regforbit=z80readmem(wpeek(stack(1),10)+z80readmem(wpeek(stack(0),10)))
 if cbopcodecallid>=0x40 & cbopcodecallid<=127{
 regfromopcodeforbit=(cbopcodecallid-0x40)-(8*cbopcodecallidforbit)
@@ -7673,8 +7673,8 @@ return
 *opcode_dd_FD
 *opcode_dd_FE
 //*opcode_dd_FF
-opcodeidforddopcodeaddcall=((opcodeidforddopcode-0x40)/8)
-opcodeidforddopcodeaddcall2=((opcodeidforddopcode-0x40)-(opcodeidforddopcodeaddcall*8))-4
+opcodeforsubcalladdcall=((opcodeforsubcall-0x40)/8)
+opcodeforsubcalladdcall2=((opcodeforsubcall-0x40)-(opcodeforsubcalladdcall*8))-4
 #ifdef __useslowz80emulation_flag__
 opcode=z80readmem(startaddr)
 gosub *z80opcodeinterpretsw
@@ -9207,8 +9207,8 @@ wpoke stack(0),10,z80readmem16(wpeek(stack(0),10))
 }else{wpoke stack(0),10,wpeek(stack(0),10)+2}
 return
 *opcode_fd
-opcodeidforddopcode=z80readmem(wpeek(stack(0),10))
 opcodeforsubcall=z80readmem(wpeek(stack(0),10))
+opcodeidforddopcode=opcodeforsubcall
 wpoke stack(0),10,wpeek(stack(0),10)+1
 gosub opcodeaddr_fd(opcodeforsubcall)
 poke stack(0),14,peek(stack(0),14)+1
@@ -9412,11 +9412,11 @@ return
 *opcode_fd_5c
 *opcode_fd_5d
 *opcode_fd_5e
-opcodeidforddopcodeaddcall=((opcodeidforddopcode-0x40)/8)
-opcodeidforddopcodeaddcall2=((opcodeidforddopcode-0x40)-(opcodeidforddopcodeaddcall*8))
-opcodeidforddopcodeaddcall3=opcodeidforddopcodeaddcall2-4
-if opcodeidforddopcode>=0x44 & opcodeidforddopcode<=0x5E{
-switch opcodeidforddopcodeaddcall
+opcodeforsubcalladdcall=((opcodeforsubcall-0x40)/8)
+opcodeforsubcalladdcall2=((opcodeforsubcall-0x40)-(opcodeforsubcalladdcall*8))
+opcodeforsubcalladdcall3=opcodeforsubcalladdcall2-4
+if opcodeforsubcall>=0x44 & opcodeforsubcall<=0x5E{
+switch opcodeforsubcalladdcall
 case 0
 regforbit=3
 swbreak
@@ -9442,9 +9442,9 @@ case 7
 regforbit=0
 swbreak
 swend
-if opcodeidforddopcodeaddcall3=0 {if regforbit=-1{}else{poke stack(0),regforbit,peek(stack(1),13)}}
-if opcodeidforddopcodeaddcall3=1 {if regforbit=-1{}else{poke stack(0),regforbit,peek(stack(1),12)}}
-if opcodeidforddopcodeaddcall3=2 {z80eaddr=z80readmem(wpeek(stack(0),10)):if z80eaddr>=128{z80eaddr=z80eaddr-256}:if regforbit=-1{}else{poke stack(0),regforbit,z80readmem(wpeek(stack(1),12)+z80eaddr):wpoke stack(0),10,wpeek(stack(0),10)+1}}
+if opcodeforsubcalladdcall3=0 {if regforbit=-1{}else{poke stack(0),regforbit,peek(stack(1),13)}}
+if opcodeforsubcalladdcall3=1 {if regforbit=-1{}else{poke stack(0),regforbit,peek(stack(1),12)}}
+if opcodeforsubcalladdcall3=2 {z80eaddr=z80readmem(wpeek(stack(0),10)):if z80eaddr>=128{z80eaddr=z80eaddr-256}:if regforbit=-1{}else{poke stack(0),regforbit,z80readmem(wpeek(stack(1),12)+z80eaddr):wpoke stack(0),10,wpeek(stack(0),10)+1}}
 }
 return
 
@@ -10140,8 +10140,6 @@ wpoke stack(0),10,wpeek(stack(0),10)+1
 return
 
 *opcode_fd_CB
-cbopcodecallid=z80readmem(wpeek(stack(0),10)+1)
-cbopcodecallidforbit=(cbopcodecallid-0x40)/8
 opcodeforsubcall=z80readmem(wpeek(stack(0),10)+1)
 gosub opcodeaddr_fd_cb(opcodeforsubcall)
 wpoke stack(0),10,wpeek(stack(0),10)+2
@@ -11160,6 +11158,8 @@ return
 *opcode_fd_cb_FD
 *opcode_fd_cb_FE
 *opcode_fd_cb_FF
+cbopcodecallid=opcodeforsubcall
+cbopcodecallidforbit=(opcodeforsubcall-0x40)/8
 regforbit=z80readmem(wpeek(stack(1),12)+z80readmem(wpeek(stack(0),10)))
 if cbopcodecallid>=0x40 & cbopcodecallid<=127{
 regfromopcodeforbit=(cbopcodecallid-0x40)-(8*cbopcodecallidforbit)
@@ -11495,8 +11495,8 @@ return
 *opcode_fd_FD
 *opcode_fd_FE
 *opcode_fd_FF
-opcodeidforddopcodeaddcall=((opcodeidforddopcode-0x40)/8)
-opcodeidforddopcodeaddcall2=((opcodeidforddopcode-0x40)-(opcodeidforddopcodeaddcall*8))-4
+opcodeforsubcalladdcall=((opcodeforsubcall-0x40)/8)
+opcodeforsubcalladdcall2=((opcodeforsubcall-0x40)-(opcodeforsubcalladdcall*8))-4
 #ifdef __useslowz80emulation_flag__
 opcode=z80readmem(startaddr)
 gosub *z80opcodeinterpretsw
@@ -11753,8 +11753,8 @@ poke SZHVC_addvar_52,0,peek(stack(0),1)
 	}
 poke stack(0),1,SZHVC_addvar_52
 	return
-*z80opcodeinterpretsw
 #ifdef __useslowz80emulation_flag__
+*z80opcodeinterpretsw
 switch opcode
 case 0
 gosub *opcode_00
@@ -12367,7 +12367,7 @@ gosub *opcode_CA
 swbreak
 case 203
 cbopcodecallid=z80readmem(wpeek(stack(0),10))
-cbopcodecallidforbit=(cbopcodecallid-0x40)/8
+cbopcodecallidforbit=(opcodeforsubcall-0x40)/8
 opcodeforsubcall=z80readmem(wpeek(stack(0),10))
 wpoke stack(0),10,wpeek(stack(0),10)+1
 switch opcodeforsubcall
@@ -13809,7 +13809,7 @@ gosub *opcode_dd_CA
 swbreak
 case 203
 cbopcodecallid=z80readmem(wpeek(stack(0),10)+1)
-cbopcodecallidforbit=(cbopcodecallid-0x40)/8
+cbopcodecallidforbit=(opcodeforsubcall-0x40)/8
 opcodeforsubcall=z80readmem(wpeek(stack(0),10)+1)
 switch opcodeforsubcall
 case 0
@@ -16223,7 +16223,7 @@ gosub *opcode_fd_CA
 swbreak
 case 203
 cbopcodecallid=z80readmem(wpeek(stack(0),10)+1)
-cbopcodecallidforbit=(cbopcodecallid-0x40)/8
+cbopcodecallidforbit=(opcodeforsubcall-0x40)/8
 opcodeforsubcall=z80readmem(wpeek(stack(0),10)+1)
 switch opcodeforsubcall
 case 0
@@ -17163,8 +17163,8 @@ case 255
 gosub *opcode_FF
 swbreak
 swend
-#endif
 return
+#endif
 #global
 #endif
 gocaine_z80init
