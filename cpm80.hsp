@@ -1,4 +1,4 @@
-//#define global __useslowz80jitemulation_flag__
+#define global __useslowz80jitemulation_flag__
 #module
 #deffunc z80memaccess int prm_0,int prm_1,int prm_2
 _z80_addr@=prm_0
@@ -7,9 +7,9 @@ _z80_accesstype@=prm_2
 goto *memoryaccesshnd@
 #global
 #include "z80.as"
-//#include "z80jit.as"
+#include "z80jit.as"
 //z80jitintervaljobset *cfcfc,2
-//z80jitintervalset -1//0
+z80jitintervalset -1//0
 #include "stdcall.as"
 dupptr var_29,get16bitcompatiblememaddr(),65540,2
 dupptr tgcmdfilename,get32bitfcbaddr(),128,2
@@ -37,7 +37,7 @@ bload tgcmdfilename2,databinaryfile
 }
 memcpy var_29,databinaryfile,strsize2,0x100,0
 address=0x100
-/*repeat
+repeat
 z80jitrun address
 loop
 tx16bitreg=0:nullptrfxxxx=syscall(0,0,tx16bitreg)
@@ -46,7 +46,7 @@ end
 if peek(var_29,address)=0x76{tx16bitreg=0:nullptrfxxxx=syscall(-1,0,tx16bitreg)}
 if address=0xF400{gosub *scallformain}
 if address=0xF500{tx16bitreg=0:nullptrfxxxx=syscall(0,0,tx16bitreg)}
-return*/
+return
 repeat
 if peek(var_29,address)=0x76{tx16bitreg=0:nullptrfxxxx=syscall(-1,0,tx16bitreg)}else{z80run address,0}
 /*if address=0xF400{gosub *scallformain}
@@ -72,9 +72,12 @@ tx16bitreg=0:nullptrfxxxx=syscall(0,0,tx16bitreg)
 return 0
 swbreak
 case 1
-tx16bitreg=0:lpoke tx16bitreg,0,wpeek(stackformt@z80moduleaccess(0,0),6)
+tx16bitreg=0:lpoke tx16bitreg,0,wpeek(stack@z80moduleaccess(0),6)
+sysclret=syscall(peek(stack@z80moduleaccess(0),2),wpeek(stack@z80moduleaccess(0),4),tx16bitreg)
+wpoke stack@z80moduleaccess(0),6,tx16bitreg
+/*tx16bitreg=0:lpoke tx16bitreg,0,wpeek(stackformt@z80moduleaccess(0,0),6)
 sysclret=syscall(stackpeek(0,0,2),wpeek(stackformt@z80moduleaccess(0,0),4),tx16bitreg)
-wpoke stackformt@z80moduleaccess(0,0),6,tx16bitreg
+wpoke stackformt@z80moduleaccess(0,0),6,tx16bitreg*/
 /*address=wpeek(var_29,wpeek(stack@z80moduleaccess(0),12))
 wpoke stack@z80moduleaccess(0),12,wpeek(stack@z80moduleaccess(0),12)+2*/
 return sysclret
