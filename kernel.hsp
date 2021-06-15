@@ -9,47 +9,16 @@
 #func global signal "signal" int,int
 #func global printf "printf" sptr,sptr
 #module
-#defcfunc _kbhitc
-if lpeek(ctrlport@,5+4*18)!0{
-if lpeek(ctrlport@,5+4*29)!0{
-ldim prtdriver,1:lpoke prtdriver,0,lpeek(ctrlport@,5+4*29):gosub prtdriver
-return lpeek(ctrlport@,5+4*19)
-}
-}else{
-return _kbhit()
-}
-return
-#defcfunc _getchc
-if lpeek(ctrlport@,5+4*18)!0{
-if lpeek(ctrlport@,5+4*30)!0{
-ldim prtdriver,1:lpoke prtdriver,0,lpeek(ctrlport@,5+4*30):gosub prtdriver
-return lpeek(ctrlport@,5+4*20)
-}
-}else{
-return _getch()
-}
-return
 #deffunc mesc str prm_0,int prm_1
-prm_0x="":prm_1x=prm_1
 if prm_1=0{
-prm_0x=prm_0+"\n"
+printf "%s",prm_0+"\n"
 }else{
-prm_0x=prm_0
-}
-if lpeek(ctrlport@,5+4*18)!0{
-if lpeek(ctrlport@,5+4*28)!0{
-lpoke ctrlport@,5+4*21,varptr(prm_0x)
-lpoke ctrlport@,5+4*22,varsize(prm_0x)
-lpoke ctrlport@,5+4*23,prm_1x
-ldim prtdriver,1:lpoke prtdriver,0,lpeek(ctrlport@,5+4*28):gosub prtdriver
-}
-}else{
-printf "%s",prm_0x
+printf "%s",prm_0
 }
 return
 #deffunc inputc array prm_0,int prm_1,int prm_2
 repeat
-prtx="":if _kbhitc()!0 {lpoke prtx,0,_getchc():if lpeek(prtx,0)!0x08{mesc prtx,1}}
+prtx="":if _kbhit()!0 {lpoke prtx,0,_getch():if lpeek(prtx,0)!0x08{mesc prtx,1}}
 if prm_2!0{if lpeek(prtx,0)=0x0a or lpeek(prtx,0)=0x0d{break}}
 if lpeek(prtx,0)=0x08{if strlen(prm_0)>0{mesc prtx+" "+prtx,1}:prm_0=strmid(prm_0,0,strlen(prm_0)-1):continue cnt}
 prm_0+=prtx:await
@@ -124,7 +93,6 @@ poke ctrlport,4,0
 lpoke sm,5+4*22,varptr(var_29)
 mem16bitshiftaddr lpeek(sm,5+4*22)
 if vartype(iosysbin)=2{memfile iosysbin:ldim prtdriver,1:lpoke prtdriver,0,_faddproc("MEM:IO.SYS"):gosub prtdriver}
-cmdline="":cmdline=dircmdlines:sdim cmdname,128,512:i=0:repeat strlen(cmdline):if strmid(cmdline,cnt,1)=" "{i=i+1}else{cmdname(i)=cmdname(i)+strmid(cmdline,cnt,1)}:loop:exist cmdname(0)+".CAX":if strsize!-1{goto *xecuter}:exist cmdname(0)+".COM":if strsize!-1{goto *xecuter}
 mesc "\n",1
 goto *ccp
 *xecuter
@@ -253,7 +221,7 @@ mesc driveletterstr,1
 ntmxplsx=4
 //if ntmxplsa=1{ntmxplsx=notemax}
 if ntmxpls=1{if (notemax-(cnt*4))>3{ntmxplsx=4}else{ntmxplsx=notemax-((notemax/4)*4)}}
-repeat ntmxplsx:if _kbhitc(){dirbreakreq=1:break}:storexint=-1:noteget dirlistvarx,cnt+cnt2:repeat strlen(dirlistvarx):if peek(dirlistvarx,cnt)>='a' and peek(dirlistvarx,cnt)<='z'{poke dirlistvarx,cnt,peek(dirlistvarx,cnt)-32}:loop:dirlistvarx2="":storex="":repeat strlen(dirlistvarx):if strmid(dirlistvarx,cnt,1)="."{storexint=cnt:break}else{if cnt<8{storex=storex+strmid(dirlistvarx,cnt,1)}}:loop:dirlistvarx2=strmid(storex,0,8):repeat (8-strlen(dirlistvarx2)):dirlistvarx2=dirlistvarx2+" ":loop:if storexint=-1{storex=""}else{storex=strmid(dirlistvarx,storexint+1,3)}:dirlistvarx2=dirlistvarx2+" "+storex:repeat (12-strlen(dirlistvarx2)):dirlistvarx2=dirlistvarx2+" ":loop:mesc ": "+dirlistvarx2+" ",1:loop:cnt2=cnt2+4
+repeat ntmxplsx:if _kbhit(){dirbreakreq=1:break}:storexint=-1:noteget dirlistvarx,cnt+cnt2:repeat strlen(dirlistvarx):if peek(dirlistvarx,cnt)>='a' and peek(dirlistvarx,cnt)<='z'{poke dirlistvarx,cnt,peek(dirlistvarx,cnt)-32}:loop:dirlistvarx2="":storex="":repeat strlen(dirlistvarx):if strmid(dirlistvarx,cnt,1)="."{storexint=cnt:break}else{if cnt<8{storex=storex+strmid(dirlistvarx,cnt,1)}}:loop:dirlistvarx2=strmid(storex,0,8):repeat (8-strlen(dirlistvarx2)):dirlistvarx2=dirlistvarx2+" ":loop:if storexint=-1{storex=""}else{storex=strmid(dirlistvarx,storexint+1,3)}:dirlistvarx2=dirlistvarx2+" "+storex:repeat (12-strlen(dirlistvarx2)):dirlistvarx2=dirlistvarx2+" ":loop:mesc ": "+dirlistvarx2+" ",1:loop:cnt2=cnt2+4
 mesc "\n",1
 if dirbreakreq=1{break}
 loop
@@ -291,7 +259,7 @@ strsize2=strsize
 sdim viewfile,strsize2
 bload dirformat,viewfile
 repeat strsize2
-if _kbhitc(){break}
+if _kbhit(){break}
 viewfilesliced=""
 lpoke viewfilesliced,0,peek(viewfile,cnt)
 mesc viewfilesliced,1
@@ -423,7 +391,7 @@ hlekeygetenabled=1
 //if lpeek(sm,4*1)=0{}else{wparam2=0}
 //repeat
 wparam2=0
-wparam2=_getchc()
+wparam2=_getch()
 gosub *ctrlseax
 wparam2str=""
 lpoke sm,4*1,wparam2
@@ -456,7 +424,7 @@ mesc showstr,1
 
 swbreak
 case 3//reader input
-if lpeek(ctrlport,5+4*25)!0{ldim prtdriver,1:lpoke prtdriver,0,lpeek(ctrlport,5+4*25):gosub prtdriver
+if lpeek(ctrlport,5+4*25)!0{ldim prtdriver,1:lpoke prtdriver,lpeek(ctrlport,5+4*25):gosub prtdriver
 }else{
 dupptr devfileopeneddata,varptr(sm)+4*1,1,2
 bload "AUX",devfileopeneddata
@@ -464,7 +432,7 @@ bload "AUX",devfileopeneddata
 }
 swbreak
 case 4
-if lpeek(ctrlport,5+4*26)!0{ldim prtdriver,1:lpoke prtdriver,0,lpeek(ctrlport,5+4*26):gosub prtdriver
+if lpeek(ctrlport,5+4*26)!0{ldim prtdriver,1:lpoke prtdriver,lpeek(ctrlport,5+4*26):gosub prtdriver
 }else{
 dupptr stringforvar24dev,varptr(ctrlport)+5+4*0,1,2
 bsave "AUX",stringforvar24dev
@@ -473,7 +441,7 @@ swbreak
 case 5
 //stringforvar24=""
 //lpoke stringforvar24,0,peek(ctrlport,5+4*0)
-if lpeek(ctrlport,5+4*27)!0{ldim prtdriver,1:lpoke prtdriver,0,lpeek(ctrlport,5+4*27):gosub prtdriver
+if lpeek(ctrlport,5+4*27)!0{ldim prtdriver,1:lpoke prtdriver,lpeek(ctrlport,5+4*27):gosub prtdriver
 }else{
 dupptr stringforvar24dev,varptr(ctrlport)+5+4*0,1,2
 bsave "PRN",stringforvar24dev
@@ -487,8 +455,8 @@ istyped=0
 hlekeygetenabled=1
 //repeat
 wparam2=0
-//wparam2=_getchc()
-if _kbhitc(){wparam2=_getchc()
+//wparam2=_getch()
+if _kbhit(){wparam2=_getch()
 gosub *ctrlseax
 }
 lpoke sm,4*1,wparam2
@@ -503,11 +471,9 @@ istyped=0
 hlekeygetenabled=1
 //repeat
 wparam2=0
-/*if _kbhitc(){wparam2=_getchc()
+if _kbhit(){wparam2=_getch()
 gosub *ctrlseax
-}*/
-wparam2=_getchc()
-gosub *ctrlseax
+}
 lpoke sm,4*1,wparam2
 /*poke var_30,49456,lpeek(sm,4*1)
 if ( var_20 ){gosub *label_30}
@@ -519,7 +485,7 @@ mesc showstr,1
 wparam2=0
 }else{
 if peek(ctrlport,5+4*0)=0xFE{
-if _kbhitc(){lpoke sm,4*1,0xFFFFFFFF}else{lpoke sm,4*1,0}
+if _kbhit(){lpoke sm,4*1,0xFFFFFFFF}else{lpoke sm,4*1,0}
 }else{
 /*if lpeek(ctrlport,5+4*0)=0xC{nowgsel=ginfo(3):gsel 0:cls 4:gsel 2:sdim var17clr,varsize(var_17):memcpy var_17,var17clr,varsize(var_17),0,0:memcpy var_30,var17clr,varsize(var_17),48896,0:gsel nowgsel:poke var_30, 49440, 0:poke var_30, 49441, 0:if ( var_20 ){gosub *label_30}}else{
 poke var_30, 49446,7
@@ -536,7 +502,7 @@ memset var_30,0,463,49456
 }*/
 
 showstr=""
-poke showstr,0,peek(ctrlport,5+4*0)
+poke showstr,0,lpeek(ctrlport,5+4*0)
 mesc showstr,1
 }
 }
@@ -645,7 +611,7 @@ logmes "inputdata:"+messagedatadump
 ;memset var_30,0,463,49456
 swbreak
 case 11
-if _kbhitc(){lpoke sm,4*1,0xFFFFFFFF}else{lpoke sm,4*1,0}
+if _kbhit(){lpoke sm,4*1,0xFFFFFFFF}else{lpoke sm,4*1,0}
 await 1
 swbreak
 case 12
@@ -1113,10 +1079,6 @@ lpoke sm,4*2,lpeek(runlabeller,0)
 lpoke sm,4*1,0
 }
 swbreak
-case 39
-case 0xFFFFFFFF
-goto *onexits
-swbreak
 case 110
 if wpeek(ctrlport,5+4*0)=0xFFFF{
 lpoke sm,4*1,delimiterfortxt
@@ -1124,8 +1086,9 @@ lpoke sm,4*1,delimiterfortxt
 delimiterfortxt=lpeek(ctrlport,5+4*0)
 }
 swbreak
-case 111
-lpoke ctrlport@,5+4*18,lpeek(ctrlport,5+4*0)
+case 39
+case 0xFFFFFFFF
+goto *onexits
 swbreak
 default
 lpoke sm,4*1,0
